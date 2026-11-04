@@ -1,0 +1,6 @@
+/config.php
+/storage/
+/public/uploads/*
+!/public/uploads/index.html
+/artifacts/
+/test-results/

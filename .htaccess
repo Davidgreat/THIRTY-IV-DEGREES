@@ -1,0 +1,7 @@
+Options -Indexes
+RewriteEngine On
+RewriteRule ^(app|storage|plugins)/ - [F,L,NC]
+RewriteRule ^(config\.php|schema\.sql|composer\.(json|lock)|README\.md)$ - [F,L,NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]

@@ -1,0 +1,5 @@
+/* V5.7.18: never pre-hide content; animation only happens through JS WAAPI. */
+body.vi-home-page .vi-reveal,body.vi-home-page .vi-reveal:not(.vi-visible),body.vi-home-page .section,body.vi-home-page .service-tile{visibility:visible!important;opacity:1!important}
+body.vi-home-page .vi-kinetic-heading,body.vi-home-page .vi-kinetic-word{visibility:visible!important;opacity:1!important}
+@media(min-width:701px){body.vi-home-page .vi-kinetic-heading{display:block!important;font-size:clamp(2.8rem,5vw,6rem)!important;max-width:900px}}
+@media(prefers-reduced-motion:reduce){body.vi-home-page *{scroll-behavior:auto}}

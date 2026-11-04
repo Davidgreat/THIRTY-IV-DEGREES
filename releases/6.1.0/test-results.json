@@ -1,0 +1,41 @@
+{
+  "checks": 487,
+  "errors": [],
+  "measurements": [
+    {
+      "width": 320,
+      "bookingStepHeight": 514.21875,
+      "pageHeight": 1246
+    },
+    {
+      "width": 375,
+      "bookingStepHeight": 501.03125,
+      "pageHeight": 1164
+    },
+    {
+      "width": 390,
+      "bookingStepHeight": 501.03125,
+      "pageHeight": 1164
+    },
+    {
+      "width": 430,
+      "bookingStepHeight": 501.03125,
+      "pageHeight": 1141
+    },
+    {
+      "width": 768,
+      "bookingStepHeight": 536.125,
+      "pageHeight": 1076
+    },
+    {
+      "width": 1280,
+      "bookingStepHeight": 536.125,
+      "pageHeight": 1076
+    },
+    {
+      "width": 1440,
+      "bookingStepHeight": 536.125,
+      "pageHeight": 1076
+    }
+  ]
+}

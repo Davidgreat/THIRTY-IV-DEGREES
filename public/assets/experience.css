@@ -1,0 +1,30 @@
+/* V5.5.0 — compact mobile-first scheduling, tracking and promotional banners */
+.vi-banner-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:14px;margin-top:24px;margin-bottom:24px}
+.vi-banner{position:relative;isolation:isolate;overflow:hidden;min-height:185px;border-radius:20px;background:linear-gradient(125deg,#174f45,#113b36);color:#fff;display:flex;align-items:center;padding:clamp(20px,3vw,38px)}
+.vi-banner:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(7,29,25,.90),rgba(7,29,25,.35));transition:transform .35s ease}
+.vi-banner:hover:before{transform:scale(1.045)}.vi-banner-copy{max-width:490px}.vi-banner-kicker{font-size:10px;letter-spacing:.2em;color:#d3ebd8}.vi-banner h2{font-size:clamp(21px,3vw,33px);line-height:1.14;color:white;margin:9px 0}.vi-banner p{font-size:13px;color:#e3efe9;line-height:1.5;margin:8px 0 16px}.vi-banner-link{display:inline-block;background:#fff;color:#174f45;padding:10px 15px;border-radius:10px;font-size:12px;font-weight:750;text-decoration:none}
+.vi-schedule{margin:12px 0;border-top:1px solid var(--line,rgba(128,128,128,.2));border-bottom:1px solid var(--line,rgba(128,128,128,.2));padding:11px 0}.vi-schedule summary{cursor:pointer;font-weight:700;font-size:13px;list-style:none}.vi-schedule summary::-webkit-details-marker{display:none}.vi-schedule summary small{font-weight:400;color:var(--ux-soft,#777)}.vi-schedule-body{display:grid;gap:8px;margin-top:12px}.vi-schedule-body label{font-size:12px}.vi-schedule-body input{height:44px!important;min-height:44px!important;font-size:14px;max-width:100%;box-sizing:border-box;color:inherit;background:var(--checkout-subtle,transparent);border:1px solid var(--checkout-border,#aaa);border-radius:10px;padding:0 10px}.vi-schedule-body small{font-size:11px;line-height:1.5;color:var(--ux-soft,#777)}.vi-clear-time{justify-self:start;background:transparent;border:0;text-decoration:underline;color:inherit;font-size:12px;cursor:pointer}
+.vi-tracking{margin:20px 0;padding:18px;border:1px solid var(--line,rgba(128,128,128,.2));border-radius:16px}.vi-tracking h3{margin:0 0 6px}.vi-tracking-list{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:0}.vi-tracking-list li{position:relative;padding:0 0 22px 32px;color:var(--ux-soft,#888);font-size:13px}.vi-tracking-list li:before{content:"";position:absolute;left:0;top:0;width:17px;height:17px;border:2px solid #8b9694;border-radius:50%;background:transparent}.vi-tracking-list li:not(:last-child):after{content:"";position:absolute;left:9px;top:21px;bottom:3px;width:2px;background:#78848155}.vi-tracking-list li.vi-step-done{font-weight:700;color:inherit}.vi-tracking-list li.vi-step-done:before{background:#0c8968;border-color:#0c8968;box-shadow:inset 0 0 0 4px #fff}.vi-tracking-list small{display:block;font-weight:400;font-size:11px;margin-top:3px}.vi-scheduled-chip{font-size:12px;padding:10px 12px;border-radius:10px;background:rgba(17,141,107,.11)}.vi-cancelled{color:#c75e4c}
+.vi-account-orders{display:grid;gap:10px;margin:15px 0 25px}.vi-account-order{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line,rgba(128,128,128,.2));border-radius:14px;text-decoration:none;color:inherit;background:var(--checkout-subtle,transparent)}.vi-account-order span{display:grid;gap:5px;min-width:0}.vi-account-order strong{overflow-wrap:anywhere;font-size:13px}.vi-account-order small{font-size:11px;color:var(--ux-soft,#888)}.vi-account-order b{font-size:13px}.vi-account-history{margin-bottom:28px}.vi-account-history summary{font-size:12px;cursor:pointer}
+@media(max-width:600px){.vi-banner-group{gap:10px;margin-top:14px;margin-bottom:14px}.vi-banner{min-height:142px;padding:19px;border-radius:14px}.vi-banner h2{font-size:21px}.vi-banner p{font-size:12px;margin:5px 0 10px}.vi-banner-link{padding:8px 12px}.vi-tracking{padding:14px}.vi-account-order{padding:12px;gap:8px}.vi-account-order span:last-child{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.vi-banner:before{transition:none}}
+
+.vi-banner-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform .35s ease}.vi-banner:hover .vi-banner-photo{transform:scale(1.04)}
+
+/* V5.5.1 — art-directed banners with typography baked into the artwork */
+.vi-banner.vi-banner-designed{padding:0!important;min-height:0!important;aspect-ratio:1024/390;background:#151515;border-radius:16px;box-shadow:0 12px 28px rgba(0,0,0,.13)}
+.vi-banner.vi-banner-designed:before{display:none!important}
+.vi-banner.vi-banner-designed .vi-banner-photo{position:static!important;display:block!important;width:100%!important;height:100%!important;object-fit:fill!important;transform:none!important}
+.vi-banner-full-link{position:absolute;inset:0;z-index:2;display:block}
+.vi-banner-full-link:focus-visible{outline:3px solid #fa7b5f;outline-offset:-5px}
+.vi-banner.vi-banner-designed:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(0,0,0,.2)}
+@media(max-width:600px){.vi-banner-group{grid-template-columns:minmax(0,1fr)!important}.vi-banner.vi-banner-designed{border-radius:12px;aspect-ratio:1024/390;box-shadow:0 5px 16px rgba(0,0,0,.12)}.vi-banner.vi-banner-designed:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.vi-banner.vi-banner-designed{transition:none}}
+
+/* V5.5.3: preserve authored banner proportions; never stretch text embedded in artwork. */
+.vi-banner.vi-banner-designed{aspect-ratio:auto!important;height:auto!important;min-height:0!important;display:block!important;overflow:hidden}
+.vi-banner.vi-banner-designed .vi-banner-picture{display:block;width:100%;height:auto}
+.vi-banner.vi-banner-designed .vi-banner-photo{position:static!important;display:block!important;width:100%!important;height:auto!important;max-width:100%;object-fit:contain!important;transform:none!important}
+.vi-banner.vi-banner-designed:hover .vi-banner-photo{transform:none!important}
+.vi-banner.vi-banner-designed .vi-banner-full-link{z-index:3}
+@media(max-width:600px){.vi-banner.vi-banner-designed{aspect-ratio:auto!important}}

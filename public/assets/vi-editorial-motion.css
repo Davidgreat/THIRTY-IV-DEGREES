@@ -1,0 +1,338 @@
+
+/* Thirty VI V5.7.1 — compact editorial visual system; storefront only, never admin. */
+body.vi-home-page,body.vi-inner-page{--vi-motion-ink:#ff9772}
+body.vi-home-page .topbar,body.vi-inner-page .topbar{min-height:56px;padding-block:8px}
+body.vi-home-page .topbar .logo,body.vi-inner-page .topbar .logo{font-size:11px}
+body.vi-home-page .topbar nav,body.vi-inner-page .topbar nav{gap:clamp(8px,1.1vw,17px)}
+body.vi-home-page .topbar nav a,body.vi-inner-page .topbar nav a{font-size:clamp(10px,.8vw,12px)}
+body.vi-home-page .container{max-width:1140px;width:calc(100% - 64px)}
+body.vi-home-page .section{padding-top:clamp(30px,4vw,58px);padding-bottom:clamp(30px,4vw,58px)}
+body.vi-home-page .section-head{margin-bottom:19px;gap:18px}
+body.vi-home-page .section-head h2,body.vi-home-page .dark-section h2{font-size:clamp(24px,2.55vw,39px)!important;line-height:1.13;letter-spacing:-.025em}
+body.vi-home-page .section-head .muted,body.vi-home-page .dark-section p{font-size:12px;line-height:1.65}
+body.vi-home-page .hero.cinematic-hero{height:clamp(330px,35vw,490px)!important;min-height:0!important;max-height:490px!important;aspect-ratio:auto!important;overflow:hidden}
+body.vi-home-page .hero-inner{max-width:1140px!important;width:calc(100% - 64px)!important;padding-block:26px!important}
+body.vi-home-page .hero-inner h1{font-size:clamp(38px,5vw,72px)!important;line-height:1.03!important;max-width:690px;letter-spacing:-.04em;margin:10px 0!important}
+body.vi-home-page .hero-inner p{font-size:clamp(12px,1.15vw,16px)!important;max-width:480px}
+body.vi-home-page .hero-inner .btn{padding:10px 15px;font-size:12px}
+body.vi-home-page .slider-controls{margin-top:20px}
+body.vi-home-page .vi-banner-group{margin-top:20px;margin-bottom:12px;gap:12px}
+body.vi-home-page .vi-banner.vi-banner-designed{border-radius:11px}
+body.vi-home-page .services-grid{gap:13px}
+body.vi-home-page .service-tile{border-radius:12px;overflow:hidden}
+body.vi-home-page .service-image{height:clamp(150px,16vw,225px)!important;max-height:225px!important}
+body.vi-home-page .service-image img{height:100%;width:100%;object-fit:cover}
+body.vi-home-page .service-info{padding:11px 13px!important;min-height:0!important}
+body.vi-home-page .service-info h3{font-size:15px!important;margin:0 0 3px}
+body.vi-home-page .service-info p{font-size:11px!important;margin:0}
+body.vi-home-page .dark-section .split{gap:35px;align-items:center}
+body.vi-home-page .dark-section .split img{max-height:310px;width:100%;object-fit:cover;border-radius:12px}
+body.vi-home-page .home-featured-grid{gap:12px}
+body.vi-home-page .home-featured-grid .card{max-width:240px;border-radius:11px;overflow:hidden}
+body.vi-home-page .home-featured-grid img{aspect-ratio:1/1;object-fit:cover}
+body.vi-home-page .vi-track-home{margin-top:12px;margin-bottom:8px;padding:9px 13px;font-size:12px;border-radius:9px}
+body.vi-home-page .site-footer{padding-top:28px;padding-bottom:28px}
+body.vi-home-page .eyebrow{font-size:9px;letter-spacing:.19em}
+body.vi-home-page .service-tile,body.vi-home-page .home-featured-grid .card,body.vi-home-page .vi-banner{transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease}
+body.vi-home-page .service-tile:hover,body.vi-home-page .home-featured-grid .card:hover,body.vi-home-page .vi-banner:hover{transform:translateY(-5px);box-shadow:0 16px 32px #0003}
+body.vi-home-page .service-tile:hover img{transform:scale(1.045)}
+body.vi-home-page .service-tile img{transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+body.vi-home-page .hero-inner h1{animation:vi-title-in .85s both cubic-bezier(.16,1,.3,1)}
+body.vi-home-page .hero-inner .eyebrow,body.vi-home-page .hero-inner p,body.vi-home-page .hero-inner .actions{animation:vi-fade-up .75s both}
+body.vi-home-page .hero-inner p{animation-delay:.14s}
+body.vi-home-page .hero-inner .actions{animation-delay:.23s}
+@keyframes vi-title-in{from{opacity:0;transform:translateY(20px);filter:blur(5px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes vi-fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+body.vi-home-page .vi-reveal{opacity:1;transform:none}
+body.vi-home-page.vi-motion-ready .vi-reveal:not(.vi-visible){opacity:0;transform:translateY(19px)}
+body.vi-home-page .vi-reveal{transition:opacity .65s ease,transform .65s cubic-bezier(.2,.8,.2,1)}
+body.vi-home-page .vi-reveal.vi-visible{opacity:1;transform:none}
+/* Soft spice silhouettes: restrained decorative accents, never blocking clicks. */
+.vi-spice-field{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none;opacity:.53}
+.vi-spice{position:absolute;display:block;will-change:transform;animation:vi-spice-float 10s ease-in-out infinite alternate;filter:drop-shadow(0 5px 6px #0003)}
+.vi-spice-a,.vi-spice-c{width:28px;height:13px;border-radius:90% 5% 90% 5%;background:linear-gradient(135deg,#829a45,#344c25);transform:rotate(-28deg)}
+.vi-spice-b,.vi-spice-d{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#d99852,#a24c26 75%)}
+.vi-spice-a{top:18%;right:14%;animation-duration:11s}
+.vi-spice-b{top:74%;right:28%;animation-duration:8s;animation-delay:-3s}
+.vi-spice-c{top:45%;right:6%;animation-duration:13s;animation-delay:-5s}
+.vi-spice-d{top:27%;right:37%;animation-duration:9s;animation-delay:-2s}
+@keyframes vi-spice-float{from{translate:0 0;rotate:-14deg}to{translate:-22px -36px;rotate:35deg}}
+.vi-motion-toggle{position:fixed;right:14px;bottom:16px;z-index:20;background:#211f20dd;color:#fff;border:1px solid #ffffff44;border-radius:50px;padding:7px 11px;font-size:11px;cursor:pointer;box-shadow:0 6px 20px #0003}
+.vi-motion-toggle:focus-visible{outline:3px solid #ff9772}
+body.vi-motion-paused .vi-spice,body.vi-motion-paused .hero-inner *,body.vi-motion-paused .vi-reveal{animation:none!important;transition:none!important;transform:none!important}
+body.vi-motion-paused .vi-reveal{opacity:1!important}
+@media(max-width:800px){
+ body.vi-home-page .container{width:calc(100% - 28px)}
+ body.vi-home-page .hero.cinematic-hero{height:clamp(320px,67vw,430px)!important}
+ body.vi-home-page .hero-inner{width:calc(100% - 34px)!important}
+ body.vi-home-page .hero-inner h1{font-size:clamp(34px,7vw,49px)!important}
+ body.vi-home-page .section{padding-top:26px;padding-bottom:26px}
+ body.vi-home-page .service-image{height:150px!important}
+ body.vi-home-page .services-grid{gap:9px}
+ body.vi-home-page .service-info{padding:9px!important}
+ body.vi-home-page .service-info h3{font-size:12px!important}
+ body.vi-home-page .service-info p{font-size:10px!important}
+ body.vi-home-page .dark-section .split img{max-height:250px}
+}
+@media(max-width:520px){
+ body.vi-home-page .hero.cinematic-hero{height:390px!important;max-height:430px!important}
+ body.vi-home-page .hero-inner h1{font-size:clamp(35px,10vw,48px)!important}
+ body.vi-home-page .services-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.vi-home-page .service-image{height:135px!important}
+ body.vi-home-page .home-featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.vi-home-page .home-featured-grid .card{max-width:none}
+ body.vi-home-page .vi-spice-field{opacity:.25}
+}
+@media(prefers-reduced-motion:reduce){body.vi-home-page .vi-spice,body.vi-home-page .hero-inner *,body.vi-home-page .vi-reveal{animation:none!important;transition:none!important;transform:none!important;filter:none!important}body.vi-home-page .vi-reveal{opacity:1!important}}
+
+/* V5.7.2 precise correction — override older mobile and desktop layouts. */
+body.vi-home-page .hero.cinematic-hero .hero-inner{
+  position:relative!important;z-index:3!important;
+  display:flex!important;flex-direction:column!important;
+  justify-content:center!important;align-items:center!important;
+  text-align:center!important;margin-inline:auto!important;
+  padding:24px 12px!important;height:100%!important;
+  min-height:0!important;box-sizing:border-box!important;
+  width:min(100% - 24px,900px)!important;max-width:900px!important;
+}
+body.vi-home-page .hero.cinematic-hero .hero-inner h1{
+  max-width:700px!important;margin:10px auto 8px!important;
+  text-align:center!important;font-size:clamp(32px,4.4vw,60px)!important;
+}
+body.vi-home-page .hero.cinematic-hero .hero-inner p{
+  margin:0 auto 14px!important;max-width:540px!important;
+  text-align:center!important;
+}
+body.vi-home-page .hero.cinematic-hero .hero-inner .eyebrow{text-align:center!important}
+body.vi-home-page .hero.cinematic-hero .hero-inner .actions{
+  display:flex!important;flex-flow:row nowrap!important;
+  align-items:center!important;justify-content:center!important;
+  gap:8px!important;width:auto!important;max-width:100%!important;
+  margin:6px auto 0!important;
+}
+body.vi-home-page .hero.cinematic-hero .hero-inner .actions .btn{
+  display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;width:auto!important;
+  min-width:0!important;flex:0 1 auto!important;
+  margin:0!important;white-space:nowrap!important;
+  padding:10px 13px!important;font-size:11px!important;
+  line-height:1.25!important;
+}
+body.vi-home-page .hero.cinematic-hero .hero-inner .slider-controls{
+  display:flex!important;justify-content:center!important;align-items:center!important;
+  gap:10px!important;margin:15px auto 0!important;
+}
+body.vi-home-page .services-grid{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,210px))!important;
+  justify-content:center!important;align-items:start!important;
+  gap:12px!important;margin-inline:auto!important;
+}
+body.vi-home-page .services-grid .service-tile{
+  position:relative!important;display:block!important;
+  aspect-ratio:1/1!important;width:100%!important;height:auto!important;
+  max-height:none!important;min-height:0!important;
+  padding:0!important;border-radius:11px!important;
+  overflow:hidden!important;box-sizing:border-box!important;
+}
+body.vi-home-page .services-grid .service-image{
+  position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;max-height:none!important;
+  min-height:0!important;aspect-ratio:1/1!important;margin:0!important;
+}
+body.vi-home-page .services-grid .service-image img{
+  display:block!important;width:100%!important;height:100%!important;
+  object-fit:cover!important;aspect-ratio:1/1!important;
+}
+body.vi-home-page .services-grid .service-info{
+  position:absolute!important;left:0!important;right:0!important;bottom:0!important;
+  width:100%!important;min-height:0!important;height:auto!important;
+  box-sizing:border-box!important;padding:20px 9px 8px!important;
+  background:linear-gradient(transparent,rgba(10,10,10,.88))!important;
+  color:#fff!important;
+}
+body.vi-home-page .services-grid .service-info h3{
+  font-size:12px!important;line-height:1.2!important;margin:0!important;
+  color:#fff!important;
+}
+body.vi-home-page .services-grid .service-info p{display:none!important}
+body.vi-home-page .services-grid .service-arrow{
+  position:absolute!important;right:9px!important;bottom:8px!important;
+  font-size:12px!important;color:#fff!important;
+}
+body.vi-home-page .services-grid .service-tile:hover{transform:translateY(-3px)}
+@media(max-width:640px){
+ body.vi-home-page .hero.cinematic-hero{height:360px!important;min-height:0!important}
+ body.vi-home-page .hero.cinematic-hero .hero-inner h1{
+   font-size:clamp(29px,8vw,42px)!important;line-height:1.05!important;
+ }
+ body.vi-home-page .hero.cinematic-hero .hero-inner .actions{gap:6px!important}
+ body.vi-home-page .hero.cinematic-hero .hero-inner .actions .btn{
+   padding:9px 8px!important;font-size:clamp(9px,2.6vw,11px)!important;
+ }
+ body.vi-home-page .services-grid{
+   grid-template-columns:repeat(3,minmax(0,1fr))!important;
+   gap:7px!important;max-width:430px!important;
+ }
+ body.vi-home-page .services-grid .service-tile{border-radius:8px!important}
+ body.vi-home-page .services-grid .service-info{padding:16px 5px 6px!important}
+ body.vi-home-page .services-grid .service-info h3{font-size:clamp(9px,2.5vw,11px)!important}
+ body.vi-home-page .services-grid .service-arrow{right:5px!important;bottom:5px!important;font-size:10px!important}
+ body.vi-home-page .section-head h2{font-size:clamp(21px,5.7vw,27px)!important}
+}
+@media(max-width:370px){
+ body.vi-home-page .hero.cinematic-hero .hero-inner .actions .btn{font-size:9px!important;padding:8px 6px!important}
+}
+
+/* V5.7.3: cards occupy the available content width; no miniature tiles. */
+body.vi-home-page .services-grid{
+  width:100%!important;max-width:100%!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:clamp(10px,1.5vw,18px)!important;
+  justify-content:stretch!important;
+}
+body.vi-home-page .services-grid .service-tile{
+  width:100%!important;max-width:none!important;
+  aspect-ratio:1/1!important;overflow:hidden!important;
+}
+body.vi-home-page .services-grid .service-image{
+  width:100%!important;height:100%!important;inset:0!important;
+  overflow:hidden!important;
+}
+body.vi-home-page .services-grid .service-image img{
+  width:100%!important;height:100%!important;
+  min-width:100%!important;min-height:100%!important;
+  display:block!important;object-fit:cover!important;
+  object-position:center!important;
+}
+body.vi-home-page .services-grid .service-info{
+  padding:32px 15px 15px!important;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.85))!important;
+}
+body.vi-home-page .services-grid .service-info h3{
+  font-size:clamp(17px,1.5vw,21px)!important;
+  font-weight:650!important;line-height:1.25!important;
+  padding-right:20px!important;
+}
+body.vi-home-page .services-grid .service-info p{
+  display:block!important;color:#f0eae4!important;
+  font-size:clamp(12px,1vw,14px)!important;
+  line-height:1.35!important;margin:5px 0 0!important;
+}
+body.vi-home-page .services-grid .service-arrow{
+  font-size:18px!important;right:14px!important;bottom:14px!important;
+}
+@media(max-width:680px){
+  body.vi-home-page .services-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+  }
+  body.vi-home-page .services-grid .service-info{padding:24px 10px 10px!important}
+  body.vi-home-page .services-grid .service-info h3{
+    font-size:clamp(14px,3.8vw,17px)!important;padding-right:10px!important;
+  }
+  body.vi-home-page .services-grid .service-info p{font-size:12px!important}
+  body.vi-home-page .services-grid .service-arrow{
+    right:9px!important;bottom:9px!important;font-size:15px!important;
+  }
+}
+@media(max-width:380px){
+  body.vi-home-page .services-grid .service-info p{display:none!important}
+  body.vi-home-page .services-grid .service-info h3{font-size:14px!important}
+}
+
+/* V5.7.8: always-on floating culinary accents, no play/pause UI. */
+body.vi-home-page .vi-motion-toggle{display:none!important}
+body.vi-home-page .cinematic-hero .vi-spice-field{opacity:1!important;z-index:2!important;position:absolute!important;inset:0!important;pointer-events:none!important;overflow:hidden!important}
+body.vi-home-page .cinematic-hero .vi-spice{display:block!important;opacity:.85!important;animation-name:vi-spice-drift!important;animation-timing-function:ease-in-out!important;animation-iteration-count:infinite!important;animation-direction:alternate!important;will-change:transform!important}
+body.vi-home-page .cinematic-hero .vi-spice-a,body.vi-home-page .cinematic-hero .vi-spice-c{width:clamp(36px,4vw,65px)!important;height:clamp(16px,1.8vw,27px)!important;background:linear-gradient(135deg,#9eb25e,#47652c)!important;box-shadow:0 4px 16px #0004!important}
+body.vi-home-page .cinematic-hero .vi-spice-b,body.vi-home-page .cinematic-hero .vi-spice-d{width:clamp(17px,2vw,30px)!important;height:clamp(17px,2vw,30px)!important;background:radial-gradient(circle at 30% 30%,#f0ad60,#b35727 70%,#773717)!important;box-shadow:0 4px 16px #0005!important}
+body.vi-home-page .cinematic-hero .vi-spice-a{top:16%!important;left:8%!important;right:auto!important;animation-duration:9s!important}
+body.vi-home-page .cinematic-hero .vi-spice-b{top:72%!important;left:15%!important;right:auto!important;animation-duration:11s!important}
+body.vi-home-page .cinematic-hero .vi-spice-c{top:20%!important;right:9%!important;left:auto!important;animation-duration:12s!important}
+body.vi-home-page .cinematic-hero .vi-spice-d{top:70%!important;right:11%!important;left:auto!important;animation-duration:10s!important}
+@keyframes vi-spice-drift{0%{transform:translate3d(0,0,0) rotate(-18deg) scale(1)}50%{transform:translate3d(12px,-28px,0) rotate(16deg) scale(1.08)}100%{transform:translate3d(-18px,18px,0) rotate(35deg) scale(.96)}}
+@media(max-width:680px){body.vi-home-page .cinematic-hero .vi-spice-a{left:3%!important}body.vi-home-page .cinematic-hero .vi-spice-b{left:8%!important}body.vi-home-page .cinematic-hero .vi-spice-c{right:4%!important}body.vi-home-page .cinematic-hero .vi-spice-d{right:8%!important}body.vi-home-page .cinematic-hero .vi-spice{opacity:.65!important}}
+@media(prefers-reduced-motion:reduce){body.vi-home-page .cinematic-hero .vi-spice{animation:none!important;will-change:auto!important}}
+
+/* V5.7.9: actual illustrated ingredients, never hidden by the hero overlay */
+body.vi-home-page .hero.cinematic-hero{isolation:isolate!important}
+body.vi-home-page .hero.cinematic-hero .vi-ingredient-sky{position:absolute!important;inset:0!important;z-index:6!important;pointer-events:none!important;overflow:hidden!important;display:block!important;visibility:visible!important;opacity:1!important}
+body.vi-home-page .hero.cinematic-hero .vi-ingredient{position:absolute!important;display:block!important;width:clamp(46px,5.4vw,82px)!important;height:auto!important;max-width:none!important;opacity:.9!important;visibility:visible!important;filter:drop-shadow(0 5px 9px rgba(0,0,0,.36))!important;animation:vi-ingredient-float 8s ease-in-out infinite alternate!important;transform-origin:center!important;will-change:transform!important}
+body.vi-home-page .hero.cinematic-hero .vi-ingredient-1{left:5%!important;top:18%!important;animation-duration:8s!important}
+body.vi-home-page .hero.cinematic-hero .vi-ingredient-2{left:15%!important;bottom:9%!important;top:auto!important;animation-duration:11s!important;animation-delay:-3s!important}
+body.vi-home-page .hero.cinematic-hero .vi-ingredient-3{right:6%!important;top:16%!important;animation-duration:10s!important;animation-delay:-2s!important}
+body.vi-home-page .hero.cinematic-hero .vi-ingredient-4{right:12%!important;bottom:9%!important;top:auto!important;animation-duration:12s!important;animation-delay:-5s!important}
+body.vi-home-page .hero.cinematic-hero .vi-ingredient-5{left:27%!important;top:9%!important;width:45px!important;animation-duration:9s!important}
+body.vi-home-page .hero.cinematic-hero .vi-ingredient-6{right:27%!important;bottom:7%!important;top:auto!important;width:42px!important;animation-duration:13s!important}
+body.vi-home-page .hero.cinematic-hero .hero-inner{position:relative!important;z-index:7!important}
+@keyframes vi-ingredient-float{0%{transform:translate3d(-9px,12px,0) rotate(-19deg)}50%{transform:translate3d(10px,-20px,0) rotate(12deg)}100%{transform:translate3d(-5px,-36px,0) rotate(31deg)}}
+/* Always three equally-sized cards on phones. No second-row orphan. */
+@media(max-width:700px){
+ body.vi-home-page .services-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;max-width:100%!important;gap:7px!important;align-items:stretch!important}
+ body.vi-home-page .services-grid .service-tile{width:100%!important;min-width:0!important;max-width:none!important;aspect-ratio:1/1!important;border-radius:9px!important}
+ body.vi-home-page .services-grid .service-image{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important}
+ body.vi-home-page .services-grid .service-image img{width:100%!important;height:100%!important;object-fit:cover!important}
+ body.vi-home-page .services-grid .service-info{padding:20px 6px 7px!important;min-height:0!important}
+ body.vi-home-page .services-grid .service-info h3{font-size:clamp(11px,3vw,15px)!important;line-height:1.15!important;padding-right:0!important}
+ body.vi-home-page .services-grid .service-info p{display:none!important}
+ body.vi-home-page .services-grid .service-arrow{display:none!important}
+ body.vi-home-page .hero.cinematic-hero .vi-ingredient{width:clamp(30px,9vw,48px)!important;opacity:.85!important}
+ body.vi-home-page .hero.cinematic-hero .vi-ingredient-5,body.vi-home-page .hero.cinematic-hero .vi-ingredient-6{display:none!important}
+ body.vi-home-page .hero.cinematic-hero .vi-ingredient-1{left:2%!important;top:10%!important}
+ body.vi-home-page .hero.cinematic-hero .vi-ingredient-2{left:3%!important;bottom:9%!important}
+ body.vi-home-page .hero.cinematic-hero .vi-ingredient-3{right:2%!important;top:11%!important}
+ body.vi-home-page .hero.cinematic-hero .vi-ingredient-4{right:3%!important;bottom:8%!important}
+}
+/* Light mode: foreground copy automatically adapts to the light surface.
+   Keep hero text and service-card overlay text white over photography. */
+html[data-theme="light"] body.vi-home-page,html[data-theme="light"] body.vi-inner-page{color:#25221f!important}
+html[data-theme="light"] body.vi-home-page main .section:not(.dark-section),html[data-theme="light"] body.vi-inner-page main .section:not(.dark-section){color:#25221f!important}
+html[data-theme="light"] body.vi-home-page .section-head h2,html[data-theme="light"] body.vi-home-page .section-head p,html[data-theme="light"] body.vi-home-page .section-head .muted,html[data-theme="light"] body.vi-home-page .section:not(.dark-section) .eyebrow,html[data-theme="light"] body.vi-inner-page .vi-customer-dash h1,html[data-theme="light"] body.vi-inner-page .vi-customer-dash h2,html[data-theme="light"] body.vi-inner-page .vi-customer-dash p,html[data-theme="light"] body.vi-inner-page .vi-customer-dash .muted{color:#25221f!important}
+html[data-theme="light"] body.vi-home-page .section:not(.dark-section) a:not(.btn):not(.service-tile),html[data-theme="light"] body.vi-inner-page .vi-customer-dash a:not(.btn){color:#332d24!important}
+html[data-theme="light"] body.vi-home-page .hero-inner,html[data-theme="light"] body.vi-home-page .hero-inner h1,html[data-theme="light"] body.vi-home-page .hero-inner p,html[data-theme="light"] body.vi-home-page .hero-inner .eyebrow,html[data-theme="light"] body.vi-home-page .service-info,html[data-theme="light"] body.vi-home-page .service-info h3,html[data-theme="light"] body.vi-home-page .service-info p{color:#fff!important}
+html[data-theme="dark"] body.vi-home-page .hero-inner,html[data-theme="dark"] body.vi-home-page .service-info{color:#fff!important}
+@media(prefers-reduced-motion:reduce){body.vi-home-page .hero.cinematic-hero .vi-ingredient{animation:none!important;will-change:auto!important}}
+
+/* V5.7.10 DESKTOP OVERRIDES: not inside a mobile-only media query. */
+@media (min-width:701px){
+ body.vi-home-page main .hero.cinematic-hero{position:relative!important;isolation:isolate!important;overflow:hidden!important}
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky{display:block!important;position:absolute!important;inset:0!important;z-index:30!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;overflow:visible!important}
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient{display:block!important;position:absolute!important;visibility:visible!important;opacity:1!important;width:clamp(65px,7vw,120px)!important;height:auto!important;max-width:none!important;min-width:60px!important;filter:drop-shadow(0 7px 12px rgba(0,0,0,.45))!important;animation:vi-desktop-float 7s ease-in-out infinite alternate!important;will-change:transform!important}
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient-1{top:15%!important;left:5%!important;right:auto!important;bottom:auto!important;animation-duration:8s!important}
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient-2{top:auto!important;bottom:12%!important;left:15%!important;right:auto!important;animation-duration:10s!important}
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient-3{top:15%!important;right:6%!important;left:auto!important;bottom:auto!important;animation-duration:9s!important}
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient-4{top:auto!important;bottom:10%!important;right:12%!important;left:auto!important;animation-duration:11s!important}
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient-5{top:5%!important;left:28%!important;right:auto!important;bottom:auto!important;width:65px!important}
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient-6{top:auto!important;bottom:5%!important;right:29%!important;left:auto!important;width:65px!important}
+ body.vi-home-page main .hero.cinematic-hero>.hero-inner{position:relative!important;z-index:35!important;pointer-events:none!important}
+ body.vi-home-page main .hero.cinematic-hero>.hero-inner a,body.vi-home-page main .hero.cinematic-hero>.hero-inner button{pointer-events:auto!important}
+ body.vi-home-page main .services-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;max-width:100%!important;width:100%!important;gap:clamp(12px,1.7vw,22px)!important}
+ body.vi-home-page main .services-grid>.service-tile{min-width:0!important;width:100%!important;max-width:none!important;aspect-ratio:1/1!important}
+}
+@keyframes vi-desktop-float{0%{transform:translate3d(-14px,13px,0) rotate(-18deg)}50%{transform:translate3d(18px,-25px,0) rotate(13deg)}100%{transform:translate3d(-7px,-48px,0) rotate(30deg)}}
+/* Text legibility across both desktop and mobile; photographic text remains white. */
+html[data-theme=light] body .section:not(.dark-section),html[data-theme=light] body .section:not(.dark-section) h1,html[data-theme=light] body .section:not(.dark-section) h2,html[data-theme=light] body .section:not(.dark-section) h3,html[data-theme=light] body .section:not(.dark-section) p,html[data-theme=light] body .section:not(.dark-section) .muted{color:#29251f!important}
+html[data-theme=light] body .hero .hero-inner,html[data-theme=light] body .hero .hero-inner h1,html[data-theme=light] body .hero .hero-inner p,html[data-theme=light] body .service-tile .service-info,html[data-theme=light] body .service-tile .service-info h3,html[data-theme=light] body .service-tile .service-info p{color:#fff!important}
+html[data-theme=dark] body .section:not(.dark-section) h1,html[data-theme=dark] body .section:not(.dark-section) h2,html[data-theme=dark] body .section:not(.dark-section) h3{color:#f5f1eb!important}
+@media (prefers-reduced-motion:reduce){body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient{animation:none!important}}
+
+/* V5.7.12: deliberately disable decorative ingredients on desktop. */
+@media (min-width:701px){
+ .cinematic-hero>.vi-float-scene,
+ .cinematic-hero>.vi-ingredient-sky,
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky,
+ .cinematic-hero img.vi-ingredient {display:none!important;visibility:hidden!important;animation:none!important}
+}
+/* Small, subtle, automatic ingredients on phones only. */
+@media (max-width:700px){
+ .cinematic-hero>.vi-float-scene>img.vi-ingredient,
+ .cinematic-hero>.vi-ingredient-sky>img.vi-ingredient,
+ body.vi-home-page main .hero.cinematic-hero>.vi-ingredient-sky>.vi-ingredient {
+  width:30px!important;min-width:0!important;max-width:30px!important;
+  opacity:.5!important;filter:drop-shadow(0 2px 5px rgba(0,0,0,.28))!important;
+ }
+ .cinematic-hero>.vi-float-scene>img.vi-ingredient-5,
+ .cinematic-hero>.vi-float-scene>img.vi-ingredient-6,
+ .cinematic-hero>.vi-ingredient-sky>img.vi-ingredient-5,
+ .cinematic-hero>.vi-ingredient-sky>img.vi-ingredient-6 {width:23px!important;max-width:23px!important}
+}

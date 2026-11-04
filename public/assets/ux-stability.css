@@ -1,0 +1,29 @@
+/* V5.5.5 - scoped UX refinements. No changes to payment or fulfillment logic. */
+:root{--vi-focus:#b89254}
+:where(a,button,input,select,textarea,summary):focus-visible{outline:2px solid var(--vi-focus);outline-offset:3px}
+.checkout-details-form :where(input:not([type=radio]):not([type=checkbox]),select,textarea){box-sizing:border-box;max-width:100%;min-width:0}
+.checkout-details-form .checkout-fields{min-width:0}
+.checkout-details-form .checkout-fields>div,.checkout-details-form .gift-field{min-width:0}
+.checkout-details-form .checkout-gift-check input[type=checkbox]{width:18px!important;height:18px!important;min-width:18px!important;flex:0 0 18px!important;margin:0!important}
+.checkout-details-form .checkout-choice-row input[type=radio]{flex-shrink:0}
+.checkout-details-form [hidden]{display:none!important}
+.checkout-mobile-bottom{box-sizing:border-box}
+.checkout-mobile-bottom .checkout-submit{min-width:0}
+.topbar nav a[aria-current=page]{color:var(--accent,#d8b87b);text-decoration:underline;text-underline-offset:5px}
+.topbar .hamb[aria-expanded=true]{color:var(--accent,#d8b87b)}
+@media(max-width:767px){
+ .checkout-flow,.checkout-grid,.checkout-primary,.checkout-aside{min-width:0}
+ .checkout-details-form .checkout-fields{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+ .checkout-details-form .checkout-panel{padding:clamp(12px,3.5vw,18px)!important}
+ .checkout-details-form :where(input:not([type=radio]):not([type=checkbox]),select,textarea){width:100%!important;font-size:16px!important}
+ .checkout-details-form .checkout-choice-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .checkout-details-form .checkout-choice{min-width:0}
+ .checkout-details-form .checkout-gift-fields{max-width:100%}
+ .checkout-mobile-bottom{width:100%;max-width:100vw;gap:12px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+ .checkout-mobile-bottom strong{overflow-wrap:anywhere}
+ .checkout-mobile-bottom .checkout-submit{white-space:nowrap}
+ .admin-content,.admin-main,.admin-page{min-width:0}
+ .admin-content table{max-width:100%}
+ .admin-content :where(input,select,textarea){max-width:100%;box-sizing:border-box}
+}
+@media(prefers-reduced-motion:reduce){.checkout-flow *, .admin-content *, .topbar *{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}

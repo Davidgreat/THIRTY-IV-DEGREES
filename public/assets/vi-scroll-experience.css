@@ -1,0 +1,3 @@
+/* V5.7.14: emergency fail-safe; never conceal homepage content. */
+html.vi-reveal-ready .vi-reveal,html.vi-reveal-ready .vi-reveal:not(.vi-in-view),body.vi-home-page .vi-reveal,body.vi-home-page .vi-reveal:not(.vi-visible){opacity:1!important;visibility:visible!important;transform:none!important;filter:none!important;transition:none!important;animation:none!important}
+.vi-scroll-progress{display:none!important}

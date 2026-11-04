@@ -1,0 +1,7 @@
+/* V5.6.0 order tracking interface */
+.vi-track-home{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 26px;margin-top:20px;margin-bottom:22px;border:1px solid var(--accent,#d8b87b);border-radius:18px;background:rgba(155,120,65,.08)}
+.vi-track-home h2{font-size:clamp(1.2rem,3vw,1.8rem);margin:6px 0}.vi-track-home p{margin:0;opacity:.8}
+.vi-track-page{max-width:680px}.vi-track-card{border:1px solid rgba(155,120,65,.3);border-radius:18px;padding:clamp(18px,4vw,36px);background:rgba(155,120,65,.05)}
+.vi-track-form{display:grid;gap:14px;margin:18px 0}.vi-track-form label{display:grid;gap:7px}.vi-track-form input{width:100%;min-width:0;box-sizing:border-box}.vi-track-form .btn{justify-self:start}
+.vi-tracking-list li{overflow-wrap:anywhere}
+@media(max-width:640px){.vi-track-home{margin:14px 14px 22px;padding:18px;flex-direction:column;align-items:stretch}.vi-track-home .btn{width:100%;text-align:center}.vi-track-form .btn{width:100%;justify-self:stretch}}

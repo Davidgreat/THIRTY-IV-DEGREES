@@ -1,0 +1,16 @@
+/* V5.7.16: visible-by-default, desktop + mobile kinetic homepage */
+body.vi-home-page .vi-original-slider-title{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;pointer-events:none!important}
+body.vi-home-page .vi-kinetic-heading{display:block!important;position:relative!important;visibility:visible!important;opacity:1!important;transform:none!important;max-width:900px;font-size:clamp(2.6rem,5.4vw,6.4rem);line-height:1.06;letter-spacing:-.045em;margin:.24em 0 .26em;text-wrap:balance;color:#fff!important}
+body.vi-home-page .vi-kinetic-window{display:inline-block;vertical-align:baseline;overflow:hidden;max-width:100%;padding:0 .035em .10em 0;white-space:normal}
+body.vi-home-page .vi-kinetic-word{display:inline-block;color:var(--accent,#d8b87b)!important;opacity:1;transform:translateY(0);will-change:transform,opacity}
+body.vi-home-page .vi-kinetic-word.vi-word-exit{animation:vi-word-out .34s cubic-bezier(.4,0,.7,1) both}
+body.vi-home-page .vi-kinetic-word.vi-word-enter{animation:vi-word-in .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes vi-word-out{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-.65em)}}
+@keyframes vi-word-in{from{opacity:0;transform:translateY(.7em)}to{opacity:1;transform:translateY(0)}}
+body.vi-home-page .hero-inner{overflow:visible}
+body.vi-home-page .services-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(8px,1.7vw,22px)}
+body.vi-home-page .service-tile{min-width:0;transform-origin:center}
+body.vi-home-page .service-tile .service-image img{transition:transform .65s cubic-bezier(.2,.8,.2,1)}
+@media(hover:hover) and (pointer:fine){body.vi-home-page .service-tile:hover .service-image img{transform:scale(1.055)}}
+@media(max-width:700px){body.vi-home-page .vi-kinetic-heading{font-size:clamp(2rem,8.5vw,3.7rem);line-height:1.13}body.vi-home-page .services-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}body.vi-home-page .service-tile{min-width:0!important}}
+@media(prefers-reduced-motion:reduce){body.vi-home-page .vi-kinetic-word{animation:none!important}body.vi-home-page .service-tile .service-image img{transition:none!important}}

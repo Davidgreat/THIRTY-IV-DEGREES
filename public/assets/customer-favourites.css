@@ -1,0 +1,15 @@
+/* V5.7.7 - Saved meals and clear order guidance */
+.vi-dash-fav-note{font-size:12px;opacity:.75;margin:-4px 0 12px}
+.vi-dash-favourites{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.vi-dash-fav{border:1px solid rgba(150,150,150,.3);border-radius:12px;overflow:hidden;min-width:0}
+.vi-dash-fav img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.vi-dash-fav-content{padding:11px;display:grid;gap:8px}
+.vi-dash-fav-content strong{font-size:13px;line-height:1.4}
+.vi-dash-fav-content small{font-size:12px}
+.vi-dash-fav-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.vi-dash-fav-actions a{font-size:12px;text-decoration:underline}
+.vi-dash-fav-actions button{font-size:11px;padding:6px;border:1px solid rgba(150,150,150,.3);border-radius:7px;background:transparent;color:inherit;cursor:pointer}
+.vi-dash-fav-empty{grid-column:1/-1;padding:19px;border:1px dashed rgba(150,150,150,.4);border-radius:11px;font-size:13px}
+.vi-dash-progress{border:1px solid rgba(160,150,140,.25);border-radius:10px;padding:12px 15px;margin-top:17px;background:rgba(160,150,140,.055)}
+.vi-dash-progress strong{font-size:13px}.vi-dash-progress p{font-size:12px;opacity:.8;margin:5px 0 0;line-height:1.6}
+@media(max-width:760px){.vi-dash-favourites{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.vi-dash-fav-content{padding:9px}}

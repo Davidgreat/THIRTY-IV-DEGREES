@@ -1,0 +1,17 @@
+/* V5.7.6 */
+.vi-chef-live{display:inline-flex;align-items:center;gap:10px;padding:8px 13px;margin-top:13px;border-radius:25px;font-size:13px;border:1px solid currentColor}
+.vi-chef-dot{width:13px;height:13px;border-radius:50%;display:block;animation:vi-blink 1.6s infinite}
+.vi-chef-live[data-available="0"]{color:#ff7777;background:#ff333310}.vi-chef-live[data-available="0"] .vi-chef-dot{background:#fa3434;box-shadow:0 0 12px #f33}
+.vi-chef-live[data-available="1"]{color:#78c9ff;background:#268bff10}.vi-chef-live[data-available="1"] .vi-chef-dot{background:#2c9dff;box-shadow:0 0 12px #39f}
+@keyframes vi-blink{50%{opacity:.28;transform:scale(.8)}}
+.vi-customer-dash{max-width:1120px;padding-top:28px}.vi-dash-welcome{display:flex;justify-content:space-between;align-items:center;gap:15px}.vi-dash-welcome h1{font-size:clamp(26px,3vw,38px);margin:6px 0}.vi-dash-welcome p{font-size:13px}
+.vi-dash-metrics,.vi-dash-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.vi-dash-metrics>*{border:1px solid #8884;border-radius:12px;padding:16px;text-decoration:none;color:inherit;display:grid;gap:7px}.vi-dash-metrics small{font-size:12px;opacity:.8}.vi-dash-metrics strong{font-size:clamp(19px,2vw,27px);overflow-wrap:anywhere}
+.vi-dash-actions a{border:1px solid #8884;border-radius:10px;padding:12px;text-decoration:none;color:inherit;font-size:13px}
+.vi-dash-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:29px 0 12px}.vi-dash-heading h2{font-size:clamp(20px,2.3vw,28px);margin:0}.vi-dash-heading a{font-size:12px}
+.vi-dash-list{display:grid;gap:9px}.vi-dash-order,.vi-dash-booking,.vi-dash-empty{border:1px solid #8884;border-radius:11px;overflow:hidden}
+.vi-dash-order>a,.vi-dash-booking{padding:13px;display:flex;justify-content:space-between;gap:13px;align-items:center;text-decoration:none;color:inherit}.vi-dash-order>a span,.vi-dash-booking span{display:grid;gap:5px}.vi-dash-order strong,.vi-dash-booking strong{font-size:13px}.vi-dash-order small,.vi-dash-booking small{font-size:11px;opacity:.75}
+.vi-dash-order form{padding:0 13px 10px;margin:0}.vi-dash-order button{border:1px solid #8885;background:transparent;color:inherit;padding:6px 9px;border-radius:7px;font-size:11px;cursor:pointer}
+.vi-dash-empty{padding:17px;font-size:13px}.vi-dash-extra,.vi-dash-review{margin-top:20px;border:1px solid #8884;border-radius:11px;padding:14px}.vi-dash-extra summary,.vi-dash-review summary{cursor:pointer;font-size:13px}.vi-dash-extra a{display:block;padding:8px 0}.vi-dash-review form{max-width:520px;margin-top:15px}
+@media(max-width:680px){.vi-dash-metrics,.vi-dash-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.vi-dash-welcome{align-items:start;flex-direction:column}.vi-dash-metrics>*{padding:12px}.vi-dash-order>a{padding:10px}.vi-customer-dash{padding-top:18px}}
+@media(prefers-reduced-motion:reduce){.vi-chef-dot{animation:none}}

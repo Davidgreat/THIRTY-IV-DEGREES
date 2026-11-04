@@ -1,0 +1,17 @@
+/* V5.5.4: small-screen administration and SMTP test form refinement. */
+.smtp-test-panel{margin:22px 0;padding:clamp(16px,2.4vw,24px)}
+.smtp-test-panel h3{margin-top:0}
+.smtp-test-form{max-width:760px}
+.smtp-test-form>label{display:block;margin-bottom:8px;font-weight:650}
+.smtp-test-actions{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.smtp-test-actions input{flex:1 1 240px;min-width:0;margin:0;box-sizing:border-box}
+.smtp-test-actions button{flex:0 0 auto;white-space:nowrap}
+@media(max-width:640px){
+ .smtp-test-actions{display:grid;grid-template-columns:minmax(0,1fr)}
+ .smtp-test-actions input,.smtp-test-actions button{width:100%;min-height:44px}
+ .admin-content,.admin-main{min-width:0}
+ .admin-content .scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+ .admin-content input,.admin-content select,.admin-content textarea{max-width:100%;box-sizing:border-box}
+ .admin-page-heading{flex-wrap:wrap;gap:8px}
+ .admin-topline{gap:8px}
+}
