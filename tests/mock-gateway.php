@@ -16,7 +16,8 @@ while($c=stream_socket_accept($server,-1)){
   if($path==='/balance')$data=[['currency'=>'NGN','balance'=>100000]];
   elseif($path==='/transaction/initialize'){
    $p=json_decode($body,true);$ref=$p['reference'];
-   if(isset($state[$ref])){$code=400;$data=[];}
+   if(($p['email']??'')==='gateway-denied@example.test'){$code=400;$data=[];}
+   elseif(isset($state[$ref])){$code=400;$data=[];}
    else{$state[$ref]=['reference'=>$ref,'status'=>'pending','currency'=>$p['currency'],'amount'=>$p['amount'],'domain'=>$mode];$data=['authorization_url'=>'https://checkout.paystack.com/mock-'.$ref,'reference'=>$ref,'access_code'=>'mock'];}
   }elseif(str_starts_with($path,'/transaction/verify/')){
    $ref=rawurldecode(substr($path,strlen('/transaction/verify/')));
@@ -25,7 +26,7 @@ while($c=stream_socket_accept($server,-1)){
    else $data=$state[$ref];
   }else $code=404;
   file_put_contents('/tmp/paystack-mock-state.json',json_encode($state));
-  $response=json_encode(['status'=>$code===200,'data'=>$data]);
+  $response=json_encode(['status'=>$code===200,'message'=>$code===400?'Business is not activated for live payments':'OK','data'=>$data]);
   fwrite($c,"HTTP/1.1 $code Result\r\nContent-Type: application/json\r\nContent-Length: ".strlen($response)."\r\nConnection: close\r\n\r\n".$response);
  }catch(Throwable $e){fwrite(STDERR,'Mock error: '.$e->getMessage()."\n");}
  fclose($c);

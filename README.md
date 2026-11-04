@@ -2,7 +2,8 @@
 
 PHP/MySQL source imported from the supplied cPanel application. The 6.0.0 update adds owner-managed test/live Paystack, payment/access fixes, account recovery, promotional-banner management and responsive glass dashboards.
 
-- [Current 6.1.0 update, previews and installation](releases/6.1.0/README.md)
+- [Current 6.1.1 checkout hotfix](releases/6.1.1/README.md)
+- [6.1.0 compact redesign and previews](releases/6.1.0/README.md)
 - [Previous 6.0.0 installation guide](release/INSTALL-6.0.0.md)
 - [Audit, fixes and remaining integrations](release/AUDIT-6.0.0.md)
 - [Validation evidence](release/VALIDATION.md)

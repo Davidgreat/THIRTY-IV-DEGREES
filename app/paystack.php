@@ -26,10 +26,20 @@ function paystack_request(string $method,string $path,string $secret,?array $pay
  $ch=curl_init('https://api.paystack.co/'.ltrim($path,'/'));
  $opts=[CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>25,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$secret,'Content-Type: application/json'],CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS];
  if($method==='POST'){$opts[CURLOPT_POST]=true;$opts[CURLOPT_POSTFIELDS]=json_encode($payload,JSON_THROW_ON_ERROR);}
- curl_setopt_array($ch,$opts);$raw=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);
+ curl_setopt_array($ch,$opts);$raw=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$transportError=curl_errno($ch);curl_close($ch);
  $data=json_decode((string)$raw,true);
- if($raw===false||$http<200||$http>=300||!is_array($data)||empty($data['status'])||!is_array($data['data']??null))throw new RuntimeException('Paystack could not complete this request. Please retry or contact support.',$http);
+ if($raw===false||$http<200||$http>=300||!is_array($data)||empty($data['status'])||!is_array($data['data']??null))throw new RuntimeException(paystack_request_error($http,$transportError,is_array($data)?$data:[]),$http);
  return $data['data'];
+}
+/** Provider text is classified only, never echoed or logged with credentials. */
+function paystack_request_error(int $http,int $transportError,array $response):string {
+ if($transportError!==0||$http===0)return 'Paystack could not be reached securely. Please retry payment from your saved order or contact our team.';
+ $message=strtolower((string)($response['message']??''));
+ if(preg_match('/not activat|activation|not enabled|not live|business.*inactive|merchant.*inactive|account.*inactive/',$message))return 'This business is not yet enabled to accept this Paystack payment. Please contact our team. (HTTP '.$http.')';
+ if($http===401)return 'Paystack could not authorize this payment. Please contact our team. (HTTP 401)';
+ if($http===403)return 'Paystack denied this payment request. Please contact our team. (HTTP 403)';
+ if($http===429)return 'Paystack is receiving too many requests. Please wait and retry from your saved order. (HTTP 429)';
+ return 'Paystack could not complete this request. Please retry from your saved order or contact our team. (HTTP '.$http.')';
 }
 function paystack_valid_transaction(array $payment,array $data,?string $mode=null):bool {
  return ($data['status']??'')==='success'

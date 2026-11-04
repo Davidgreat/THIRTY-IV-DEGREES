@@ -1,0 +1,3 @@
+.checkout-error-summary{border:1px solid #d48270;background:#5a25201c;border-radius:9px;padding:14px 16px;margin:12px 0 18px;color:var(--c-text,var(--ink));font-size:13px;scroll-margin-top:90px}
+.checkout-error-summary[hidden]{display:none!important}.checkout-error-summary strong{display:block;margin-bottom:7px}.checkout-error-summary ul{padding-left:18px;margin:0}.checkout-error-summary li+li{margin-top:5px}
+#checkout-form [aria-invalid="true"]{outline:2px solid #d48270!important;outline-offset:1px}
