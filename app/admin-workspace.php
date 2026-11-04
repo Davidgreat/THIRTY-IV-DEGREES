@@ -11,6 +11,7 @@ function admin_tool_groups():array{return [
  'payments'=>['title'=>'Payments & reports','hint'=>'Paystack, transactions and refunds','icon'=>'03','tools'=>[
  'payments'=>['Transactions','Review recorded payments and their test/live environment.'],
  'paystack'=>['Paystack setup','Manage payment activation and test/live credentials.'],
+ 'checkout-health'=>['Checkout diagnostics','Inspect endpoint stages and missing database fields without changing records.'],
  'refunds'=>['Refund reviews','Review eligible payments and submit or reconcile refunds.'],
  'analytics'=>['Sales reports','Understand paid order value, popular meals and booking activity.']]],
  'website'=>['title'=>'Website & content','hint'=>'Appearance, promotions and media','icon'=>'04','tools'=>[

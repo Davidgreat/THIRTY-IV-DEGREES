@@ -2,7 +2,8 @@
 
 PHP/MySQL source imported from the supplied cPanel application. The 6.0.0 update adds owner-managed test/live Paystack, payment/access fixes, account recovery, promotional-banner management and responsive glass dashboards.
 
-- [Current 6.1.1 checkout hotfix](releases/6.1.1/README.md)
+- [Current 6.1.2 checkout submission repair](releases/6.1.2/README.md)
+- [Previous 6.1.1 checkout hotfix](releases/6.1.1/README.md)
 - [6.1.0 compact redesign and previews](releases/6.1.0/README.md)
 - [Previous 6.0.0 installation guide](release/INSTALL-6.0.0.md)
 - [Audit, fixes and remaining integrations](release/AUDIT-6.0.0.md)
@@ -24,3 +25,5 @@ Run `php -S 127.0.0.1:8086 router.php` from the application directory. Start MyS
 Build the update with `python3 release/build.py` while the original supplied baseline exists at `/workspace/platform-source/public_html`. The archive includes changed runtime files and additive migrations only. Review its contents and checksum before distribution.
 
 Build the code-only 6.1.0 patch with `python3 release/build-610.py` while the exact 6.0.0 runtime baseline exists at `/workspace/baseline-600`. The package excludes payment service code and migrations.
+
+Build the 6.1.2 checkout repair with `python3 release/build-612.py` against the recorded 6.1.1 Git baseline. See its release validation for synthetic endpoint and Apache redirect tests.

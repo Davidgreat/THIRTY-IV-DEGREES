@@ -23,6 +23,7 @@ function admin_revenue_chart(array $rows):void{
  ?><div class="admin-chart" role="img" aria-label="Daily paid order revenue for the last 14 days"><div class="admin-chart-legend"><span><i></i> Paid revenue</span><strong>Last 14 days</strong></div><div class="admin-chart-bars"><?php foreach($days as $d):$pct=$d['value']/$max*100;?><div class="admin-chart-slot" title="<?=esc(date('d M',strtotime($d['day'])))?>: <?=esc(money($d['value']))?>"><div class="admin-chart-bar" style="height:<?=max(2,round($pct,2))?>%"></div><small><?=date('j',strtotime($d['day']))?></small></div><?php endforeach;?></div></div><?php
 }
 if($section==='workspace'){admin_page('Workspace guide',fn()=>admin_workspace_guide());exit;}
+if($section==='checkout-health'){require ROOT.'/app/checkout-health.php';exit;}
 if($section==='paystack'){require ROOT.'/app/admin-paystack.php';exit;}
 if($section===''){admin_page('Business overview',function(){
  $orders=one('SELECT COUNT(*) n FROM orders');$paid=one("SELECT COALESCE(SUM(total),0) total FROM orders WHERE payment_status='paid'");

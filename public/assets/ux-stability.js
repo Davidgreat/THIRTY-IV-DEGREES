@@ -8,7 +8,7 @@ function init(){
  nav.addEventListener('click',function(e){if(e.target.closest('a')&&nav.classList.contains('show')){nav.classList.remove('show');toggle.setAttribute('aria-expanded','false')}});
  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&nav.classList.contains('show')){nav.classList.remove('show');toggle.setAttribute('aria-expanded','false');toggle.focus()}});
  }
- var form=document.querySelector('#checkout-form');if(form){form.addEventListener('submit',function(){if(!form.checkValidity())return;var buttons=document.querySelectorAll('button[form="checkout-form"],#checkout-form button[type="submit"]');buttons.forEach(function(btn){btn.setAttribute('aria-busy','true');btn.dataset.originalLabel=btn.textContent;btn.textContent='Continuing…';});});}
+
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

@@ -4,6 +4,11 @@ require __DIR__.'/app/core.php';
 require_once ROOT.'/app/checkout.php';
 if(!is_file(ROOT.'/config.php')){header('Location: /install/');exit;}
 $path=trim(parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH),'/');
+if(defined('THIRTYVI_CHECKOUT_ENDPOINT')){
+ if(!post())checkout_endpoint_bootstrap();
+ $path='checkout';checkout_trace('received');
+}
+
 function card(array $p):void{?><article class="card food-tile"><div class="food-photo"><a href="/product/<?=(int)$p['id']?>" aria-label="View <?=esc($p['name'])?>"><img loading="lazy" src="<?=esc($p['image'])?>" alt="<?=esc($p['name'])?>"></a><button class="food-like" type="button" data-food-like="<?=(int)$p['id']?>" aria-label="Save <?=esc($p['name'])?> to favourites" aria-pressed="false" title="Save to favourites">♡</button></div><div class="food-info"><h3><a href="/product/<?=(int)$p['id']?>"><?=esc($p['name'])?></a></h3><?php $rating=one('SELECT COUNT(*) n,ROUND(AVG(stars),1) avg_stars FROM product_reviews WHERE product_id=? AND approved=1',[(int)$p['id']]);if((int)$rating['n']>0):?><div class="food-rating" aria-label="Rated <?=esc($rating['avg_stars'])?> out of five by <?=(int)$rating['n']?> customers"><span aria-hidden="true">★</span> <?=esc($rating['avg_stars'])?> <small>(<?=(int)$rating['n']?>)</small></div><?php endif;?><div class="food-bottom"><strong class="food-price"><?=money($p['price'])?></strong><a class="food-view" href="/product/<?=(int)$p['id']?>" aria-label="View <?=esc($p['name'])?>">View →</a></div></div></article><?php }
 function meal_options(int $productId):array{
  $groups=all('SELECT id,name,required,max_select FROM meal_option_groups WHERE product_id=? ORDER BY sort_order,id',[$productId]);
@@ -69,7 +74,8 @@ function wa_link(string $phone,string $message):string{
 function head(string $title,string $sub=''):void{?><div class="pagehead"><span class="eyebrow">36°</span><h1><?=esc($title)?></h1><?php if($sub):?><p><?=esc($sub)?></p><?php endif;?></div><?php }
 function field(string $label,string $name,string $type='text',bool $required=true,string $value=''):void{echo '<label for="'.esc($name).'">'.esc($label).'</label><input id="'.esc($name).'" name="'.esc($name).'" type="'.esc($type).'" value="'.esc($value).'" '.($required?'required':'').'>';}
 function paystack_start(string $kind,int $id,string $email,float $amount):never{
- try{$destination=paystack_checkout($kind,$id);}catch(Throwable $e){try{audit('payment.start.failed',$kind.'='.$id.'; http='.(int)$e->getCode());}catch(Throwable $ignored){}flash($e instanceof RuntimeException?$e->getMessage():'Payment could not be started. Please contact support.','error');go(($kind==='order'?'order/':'booking/').$id);}
+ try{$destination=paystack_checkout($kind,$id);}catch(Throwable $e){checkout_trace('gateway_failed',['order_id'=>$id,'http_status'=>(int)$e->getCode()]);try{audit('payment.start.failed',$kind.'='.$id.'; http='.(int)$e->getCode());}catch(Throwable $ignored){}flash($e instanceof RuntimeException?$e->getMessage():'Payment could not be started. Please contact support.','error');go(($kind==='order'?'order/':'booking/').$id);}
+ if(checkout_is_json()){checkout_trace('gateway_ready',['order_id'=>$id]);checkout_json_reply(200,['ok'=>true,'stage'=>'gateway_ready','next'=>$destination,'order_url'=>($kind==='order'?'/order/':'/booking/').$id]);}
  header('Location: '.$destination);exit;
 }
 function booking_slot_open(string $kind,string $date,string $time,int $exclude=0):bool{
@@ -125,7 +131,7 @@ if($path==='booking/availability'){
 }
 if($path==='logout'){unset($_SESSION['uid'],$_SESSION['checkout_draft'],$_SESSION['checkout_errors'],$_SESSION['checkout_last_order']);session_regenerate_id(true);go('');}
 if(post()){
- check_csrf();rate_limit('post',60,300);
+ check_csrf();if(defined('THIRTYVI_CHECKOUT_ENDPOINT'))checkout_trace('csrf_verified');rate_limit('post',60,300);
  if($path==='forgot-password'){
   rate_limit('account_recovery',5,900);
   try{account_reset_request(strtolower(str('email',190)));}catch(Throwable $e){error_log('Account recovery queue failed');}
@@ -179,9 +185,10 @@ if(post()){
  if($path==='checkout'){
  $cart=$_SESSION['cart']??[];
  if(!$cart){$last=(int)($_SESSION['checkout_last_order']??0);if($last&&isset($_SESSION['order_access'][$last]))go('order/'.$last);go('cart');}
+ if(isset($_POST['checkout_mode'])&&(!is_string($_POST['checkout_mode'])||$_POST['checkout_mode']!==paystack_mode())){$_SESSION['checkout_errors']=['payment_mode'=>'The payment environment changed while this page was open. Refresh checkout before continuing.'];go('checkout#checkout-errors');}
  $input=checkout_input($_POST);$_SESSION['checkout_draft']=$input;$requestedFor=null;$errors=checkout_errors($input,$requestedFor);
  if($errors){$_SESSION['checkout_errors']=$errors;go('checkout#checkout-errors');}
- unset($_SESSION['checkout_errors']);
+ unset($_SESSION['checkout_errors']);checkout_trace('validated');
  $name=$input['name'];$email=$input['email'];$phone=$input['phone'];$address=$input['address'];$fulfillment=$input['fulfillment'];$isGift=$input['is_gift']==='1';
  $recipientName=$input['recipient_name'];$recipientPhone=$input['recipient_phone'];$recipientAddress=$input['recipient_address'];$giftMessage=$input['gift_message'];$giftAnonymous=$input['gift_anonymous']==='1';
  db()->beginTransaction();try{
@@ -203,7 +210,13 @@ if(post()){
    if($inv&&(int)$inv['track_stock']===1)sql('INSERT INTO stock_reservations(product_id,order_id,quantity,expires_at) VALUES(?,?,?,DATE_ADD(NOW(),INTERVAL 20 MINUTE))',[$p['id'],$id,$qty]);
   }
   db()->commit();
- }catch(Throwable $e){if(db()->inTransaction())db()->rollBack();flash('Your order could not be created. '.$e->getMessage(),'error');go('cart');}
+ }catch(Throwable $e){
+  if(db()->inTransaction())db()->rollBack();
+  if($e instanceof PDOException){checkout_trace('order_database_failed',['database_code'=>(int)($e->errorInfo[1]??0),'sqlstate'=>(string)$e->getCode()]);$message='The order could not be saved because of a database error. Please contact our team with the checkout reference.';}
+  else{checkout_trace('order_validation_failed');$message=$e instanceof RuntimeException?$e->getMessage():'The order could not be saved. Please contact our team.';}
+  flash($message,'error');go('cart');
+ }
+ checkout_trace('order_created',['order_id'=>$id]);
  unset($_SESSION['cart'],$_SESSION['checkout_draft'],$_SESSION['checkout_errors']);$_SESSION['checkout_last_order']=$id;
  run_hook('order.created',['order_id'=>$id]);
  if(paystack_enabled())paystack_start('order',$id,$email,$subtotal+$fee);
@@ -495,18 +508,18 @@ if($path==='cart'){$cart=$_SESSION['cart']??[];layout('Your Bag',function()use($
 if($path==='checkout'){header('Cache-Control: private, no-store, max-age=0');$cart=$_SESSION['cart']??[];if(!$cart)go('cart');$u=user();$previous=$u?one('SELECT phone,address,fulfillment FROM orders WHERE user_id=? ORDER BY id DESC LIMIT 1',[$u['id']]):null;layout('Checkout',function()use($cart,$u,$previous){$sum=0;$items=[];foreach($cart as $c){$p=one('SELECT * FROM products WHERE id=?',[$c['id']]);if(!$p)continue;$calc=meal_cart_price($c,$p);$price=$calc['unit']*$c['qty'];$sum+=$price;$items[]=['product'=>$p,'qty'=>$c['qty'],'price'=>$price,'options'=>$calc['labels']];}?>
 <?php vi_banners('checkout_top');?><section class="checkout-flow container" data-checkout-flow>
  <div class="checkout-top"><a href="/cart" class="checkout-back" aria-label="Back to your bag">← <span>Back to bag</span></a><span class="checkout-secure">🔒 Secure checkout</span></div>
- <?php checkout_error_summary($_SESSION['checkout_errors']??[]);?><div class="checkout-heading"><span class="checkout-eyebrow">ALMOST THERE</span><h1>Let's get your food to you.</h1><p>Review your meal, choose delivery or pickup, and confirm your details.</p></div>
+ <?php checkout_error_summary($_SESSION['checkout_errors']??[]);?><p class="checkout-build-label">Checkout 6.1.2 · <?=esc(paystack_mode()==='test'?'Test mode':'Live mode')?></p><div class="checkout-heading"><span class="checkout-eyebrow">ALMOST THERE</span><h1>Let's get your food to you.</h1><p>Review your meal, choose delivery or pickup, and confirm your details.</p></div>
  <div class="checkout-steps" aria-label="Checkout steps"><span class="done"><i>✓</i> Your bag</span><span class="current" aria-current="step"><i>2</i> Your details</span><span><i>3</i> Payment</span></div>
  <div class="checkout-grid">
   <div class="checkout-primary">
    <details class="checkout-order-card" open><summary><span><strong>Your order</strong><small><?=count($items)?> selection<?=count($items)===1?'':'s'?></small></span><b><?=money($sum)?></b><span class="checkout-chevron" aria-hidden="true">⌄</span></summary><div class="checkout-order-list"><?php foreach($items as $item):?><div class="checkout-product"><img loading="lazy" src="<?=esc($item['product']['image'])?>" alt=""><div><strong><?=esc($item['product']['name'])?></strong><small>Qty <?=$item['qty']?><?php foreach($item['options'] as $option):?> · <?=esc($option)?><?php endforeach;?></small></div><b><?=money($item['price'])?></b></div><?php endforeach;?></div><a class="checkout-edit" href="/cart">Edit your bag →</a></details>
-   <form id="checkout-form" action="/checkout" method="post" class="checkout-details-form" data-checkout-form><?=token()?>
+   <form id="checkout-form" action="/public/checkout.php" method="post" class="checkout-details-form" data-checkout-form data-checkout-build="6.1.2" data-payment-mode="<?=esc(paystack_mode())?>"><?=token()?>
     <div class="checkout-panel"><div class="checkout-panel-title"><span class="checkout-panel-icon">1</span><div><h2>How would you like it?</h2><p>Choose what works for you.</p></div></div>
      <div class="checkout-choice-row" role="radiogroup" aria-label="Order fulfillment"><label class="checkout-choice"><input type="radio" name="fulfillment" value="delivery" <?=checkout_value('fulfillment','delivery')==='delivery'?'checked':''?>><span>🚴 <strong>Delivery</strong><small>Bring it to me</small></span></label><label class="checkout-choice"><input type="radio" name="fulfillment" value="pickup" <?=checkout_value('fulfillment','delivery')==='pickup'?'checked':''?>> <span>🛍️ <strong>Pickup</strong><small>I'll collect it</small></span></label></div>
      <div class="checkout-gift-toggle" data-gift-option><label class="checkout-gift-check"><span class="checkout-gift-icon" aria-hidden="true">🎁</span><span class="checkout-gift-label">Send as a gift</span><input type="checkbox" name="is_gift" value="1" data-gift-toggle <?=checkout_value('is_gift')==='1'?'checked':''?> aria-label="Send this delivery as a gift"><span class="checkout-gift-indicator" aria-hidden="true">›</span></label></div>
      <div class="checkout-gift-fields" data-gift-fields hidden><div class="checkout-gift-heading"><strong>Recipient details</strong></div><div class="checkout-fields"><div class="gift-field"><label for="gift-recipient-name">Recipient name <span class="checkout-required">*</span></label><input id="gift-recipient-name" name="recipient_name" value="<?=esc(checkout_value('recipient_name'))?>" maxlength="150" autocomplete="off" placeholder="Their full name" data-gift-required></div><div class="gift-field"><label for="gift-recipient-phone">Phone number <span class="checkout-required">*</span></label><input id="gift-recipient-phone" name="recipient_phone" value="<?=esc(checkout_value('recipient_phone'))?>" type="tel" inputmode="tel" maxlength="60" placeholder="0800 000 0000" data-gift-required></div><div class="checkout-wide" data-gift-address><label for="gift-recipient-address">Recipient's delivery address <span class="checkout-required">*</span></label><textarea id="gift-recipient-address" name="recipient_address" rows="2" placeholder="House, street, landmark" data-gift-required><?=esc(checkout_value('recipient_address'))?></textarea></div><div class="checkout-wide"><label for="gift-message">Gift note <small>(optional)</small></label><textarea id="gift-message" name="gift_message" maxlength="500" rows="2" placeholder="A little message to make their day"><?=esc(checkout_value('gift_message'))?></textarea><div class="gift-message-tools"><span class="gift-message-ideas"><button type="button" data-gift-preset="Happy birthday! Wishing you a beautiful day.">Birthday</button><button type="button" data-gift-preset="Thinking of you. Enjoy something delicious!">Thinking of you</button><button type="button" data-gift-preset="Thank you for everything. Enjoy your meal!">Thank you</button></span><small data-gift-count>0/500</small></div></div></div><label class="checkout-anonymous"><input type="checkbox" name="gift_anonymous" value="1" <?=checkout_value('gift_anonymous')==='1'?'checked':''?>><span>Keep my name private from the recipient</span></label><p class="muted small">The recipient's number is used for fulfilment. Your payment and receipt remain under your contact details.</p></div>
      <details class="vi-schedule" data-schedule><summary>🕒 Schedule for later <small>(optional)</small></summary><div class="vi-schedule-body"><label for="vi-scheduled-for">Preferred delivery or pickup time</label><input id="vi-scheduled-for" type="datetime-local" name="scheduled_for" value="<?=esc(checkout_value('scheduled_for'))?>" data-schedule-input step="60" min="<?=esc(vi_local_now()->modify('+2 hours +1 minute')->format('Y-m-d\TH:i'))?>" max="<?=esc(vi_local_now()->modify('+14 days')->format('Y-m-d\TH:i'))?>"><div class="vi-slot-actions"><button type="button" data-vi-slot="tomorrow-lunch">Tomorrow 12 PM</button><button type="button" data-vi-slot="tomorrow-evening">Tomorrow 6 PM</button><button type="button" data-vi-slot="day-after-lunch">Day after 12 PM</button></div><small>At least 2 hours ahead, within 14 days, 9 AM–8 PM (Lagos time). We'll confirm availability after payment.</small><button type="button" class="vi-clear-time" data-clear-schedule>Clear time</button></div></details>
-     <div class="checkout-address" data-delivery-address><label for="checkout-address">Delivery address <span class="checkout-required">*</span></label><textarea id="checkout-address" name="address" rows="2" placeholder="Street, house number, landmark" autocomplete="street-address" required><?=esc(checkout_value('address',($previous['fulfillment']??'')==='delivery'?(string)$previous['address']:''))?></textarea></div>
+     <div class="checkout-address" data-delivery-address><label for="checkout-address">Delivery address <span class="checkout-required">*</span></label><textarea id="checkout-address" name="address" rows="2" placeholder="Street, house number, landmark" autocomplete="street-address"><?=esc(checkout_value('address',($previous['fulfillment']??'')==='delivery'?(string)$previous['address']:''))?></textarea></div>
     </div>
     <div class="checkout-panel"><div class="checkout-panel-title"><span class="checkout-panel-icon">2</span><div><h2>Your contact details</h2><p>So we can reach you about your order.</p></div></div>
      <div class="checkout-fields"><div><label for="checkout-name">Full name <span class="checkout-required">*</span></label><input id="checkout-name" name="name" type="text" autocomplete="name" value="<?=esc(checkout_value('name',$u['name']??''))?>" placeholder="Your full name" maxlength="150" required></div><div><label for="checkout-phone">Phone number <span class="checkout-required">*</span></label><input id="checkout-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0800 000 0000" value="<?=esc(checkout_value('phone',$previous['phone']??''))?>" maxlength="60" required></div><div class="checkout-wide"><label for="checkout-email">Email address <span class="checkout-required">*</span></label><input id="checkout-email" name="email" type="email" autocomplete="email" value="<?=esc(checkout_value('email',$u['email']??''))?>" placeholder="you@example.com" maxlength="190" required></div></div>
