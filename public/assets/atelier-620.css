@@ -1,0 +1,61 @@
+/* 36° Atelier: shared palette, restrained motion, and compact hospitality. */
+:root{--c-bg:#101411;--c-panel:#1a211c;--c-panel-alt:#242d25;--c-text:#f5efe4;--c-muted:#c0c5bb;--c-line:#d8bf852e;--c-gold:#e3bf77;--a-glass:rgba(29,38,31,.82);--a-shadow:0 16px 44px #00000020}
+html[data-theme="light"]{--c-bg:#f6f2e9;--c-panel:#fffdf7;--c-panel-alt:#ede6d9;--c-text:#242c25;--c-muted:#555f54;--c-line:#5e63432e;--c-gold:#80591c;--a-glass:rgba(255,253,247,.88);--a-shadow:0 16px 44px #3e35100b}
+body.vi-compact{background:radial-gradient(ellipse at 95% 15%,#aa7e2510,transparent 50%),var(--c-bg)!important;-webkit-font-smoothing:antialiased}
+body.vi-compact :is(.pagehead,.page-head,.page-hero){background:linear-gradient(110deg,#18231c,#343322)!important;border-bottom:1px solid #d7bb6a35;padding-block:30px!important;color:#f5efe4!important}
+body.vi-compact :is(.pagehead,.page-head,.page-hero) :is(h1,h2,p,.muted){color:#f5efe4!important}
+body.vi-compact .home-hero{min-height:410px;border-radius:22px;padding:44px!important;border:1px solid #d7bb6a40;box-shadow:var(--a-shadow)}
+body.vi-compact .home-hero::after{background:linear-gradient(90deg,#0d1915f5,#0d1915dd 38%,#0d191520 88%)}
+body.vi-compact .home-hero-copy{width:65%;max-width:660px}
+body.vi-compact .home-hero h1{font-size:clamp(38px,4.7vw,64px);line-height:1.02;margin:17px 0 12px;max-width:650px;color:#fff8eb!important;text-wrap:initial}
+body.vi-compact .home-hero h1 em{color:#edca88;font-weight:400;display:inline-block;min-height:1.1em}
+body.vi-compact .home-hero p{color:#ece8dc!important}
+.hero-motion-toggle{display:block;border:0;background:transparent;color:#e8d9b8;font:11px Arial,sans-serif;padding:4px 0;cursor:pointer;min-height:28px;margin:0 0 5px}
+body.vi-compact .home-hero .eyebrow{color:#edca88!important}
+body.vi-compact .home-hero .home-secondary{background:#ffffff0c!important;backdrop-filter:blur(12px);color:#fff8eb!important}
+body.vi-compact .btn{border-radius:100px!important;transition:background .2s,box-shadow .2s,translate .2s}
+body.vi-compact .btn:hover{translate:0 -2px;box-shadow:0 8px 20px #0002!important}
+body.vi-compact :is(.experience-panel,.food-tile,.vi-shop-product,.cart-line,.cart-summary,.checkout-panel,.checkout-order-card,.checkout-total-card,.form.compact-booking,.customer-panel,.admin-panel,.admin-stat,.studio-stat){background:var(--a-glass)!important;border:1px solid var(--c-line)!important;box-shadow:var(--a-shadow)!important;backdrop-filter:blur(18px);border-radius:16px!important;color:var(--c-text)}
+body.vi-compact :is(.experience-copy,.food-grid .food-info){background:transparent!important}
+body.vi-compact .experience-copy h3{font-size:30px!important}
+body.vi-compact .compact-section-title h2{font-size:30px}
+body.vi-compact .food-tile .food-photo img,body.vi-compact .experience-photo img{transition:transform .65s cubic-bezier(.2,.7,.2,1)}
+@media(hover:hover){body.vi-compact .food-tile:hover .food-photo img,body.vi-compact .experience-panel:hover .experience-photo img{transform:scale(1.045)}}
+body.vi-compact .hospitality-note{margin-block:26px;padding:30px 26px;border-block:1px solid var(--c-line);background:radial-gradient(ellipse at 10% 30%,#caa24c12,transparent 65%);display:grid;grid-template-columns:.7fr 1.6fr 1fr;gap:20px;align-items:center}
+body.vi-compact .hospitality-note>p{font:30px/1.25 Georgia,serif;margin:0;color:var(--c-text)}
+.hospitality-note em{color:var(--c-gold)}.hospitality-note>div{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--c-muted)}.hospitality-seal{display:grid;place-items:center;width:56px;height:56px;flex-shrink:0;border:1px solid var(--c-gold);border-radius:50%;font:22px Georgia,serif;color:var(--c-gold);rotate:-12deg}
+/* Explicit colour contracts stop legacy page styles leaking across themes. */
+body.vi-compact :is(.checkout-heading,.checkout-panel,.checkout-total-card,.cart-line,.cart-summary,.vi-shop-product,.booking-workspace,.customer-panel,.admin-panel) :is(h1,h2,h3,label,strong,b){color:var(--c-text)!important}
+body.vi-compact :is(.checkout-heading,.checkout-panel,.checkout-total-card,.cart-summary,.booking-workspace) :is(p,small){color:var(--c-muted)}
+body.vi-compact :is(.checkout-details-form,.vi-track-form) :is(input,select,textarea){background:var(--c-panel)!important;color:var(--c-text)!important;border-color:var(--c-line)!important}
+body.vi-compact .checkout-heading h1{font-size:clamp(29px,3vw,42px)}
+body.vi-compact .checkout-panel{padding:20px!important}.checkout-panel-title{margin-bottom:14px!important}
+body.vi-compact .checkout-choice{background:var(--c-panel-alt)!important;color:var(--c-text)!important}
+body.vi-compact .checkout-choice:has(input:checked){border-color:var(--c-gold)!important}
+body.vi-compact .checkout-submit{background:#d6ad61!important;color:#1b2017!important;border-radius:100px!important}
+body.vi-compact .checkout-mobile-bottom{background:var(--a-glass)!important;backdrop-filter:blur(20px);border-color:var(--c-line)!important;color:var(--c-text)!important}
+html[data-theme="light"] body.vi-compact :is(.admin-shell,.customer-dashboard,.vi-track-card,.summary,.cart-line,.vi-shop-product){color:var(--c-text)!important}
+html[data-theme="light"] body.vi-compact :is(.admin-shell,.customer-dashboard) :is(h1,h2,h3,h4,label,th,td){color:var(--c-text)!important}
+body.vi-compact .site-footer,body.vi-compact .topbar{color:#f5efe4!important}body.vi-compact .site-footer :is(p,b,a,span){color:#d9d9c9!important}
+.phrase-enter{animation:phrase-in .5s both}.atelier-arrive{animation:atelier-in .7s both}
+@keyframes phrase-in{from{opacity:.2;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes atelier-in{from{opacity:.65;transform:translateY(15px)}to{opacity:1;transform:none}}
+@media(max-width:767px){body.vi-compact .home-hero{padding:25px 21px!important;min-height:340px;border-radius:16px;margin-top:12px}body.vi-compact .home-hero-copy{width:100%;max-width:400px}body.vi-compact .home-hero h1{font-size:clamp(32px,8vw,40px);max-width:370px;min-height:2.15em}body.vi-compact .home-hero::after{background:linear-gradient(90deg,#0d1915f5,#0d1915c7 65%,#0d19156b)}body.vi-compact .home-hero p{font-size:12px;max-width:280px;margin-bottom:14px}body.vi-compact .home-hero-actions{gap:7px}body.vi-compact .home-hero-actions .btn{font-size:11px;min-height:42px;padding:9px 12px!important}.hero-motion-toggle{font-size:10px;margin-bottom:0}body.vi-compact .compact-section-title h2{font-size:25px}body.vi-compact .experience-copy h3{font-size:23px!important}body.vi-compact .hospitality-note{grid-template-columns:1fr;padding:24px 12px;gap:13px;margin-block:16px}body.vi-compact .hospitality-note>p{font-size:27px}.hospitality-note>div{font-size:11px}.hospitality-seal{width:40px;height:40px;font-size:18px}body.vi-compact :is(.pagehead,.page-head,.page-hero){padding-block:22px!important}body.vi-compact .checkout-panel{padding:15px!important}body.vi-compact .checkout-heading{margin-bottom:14px}body.vi-compact .checkout-heading h1{font-size:28px}body.vi-compact .checkout-heading p{font-size:12px}body.vi-compact .booking-intro{box-shadow:none!important}body.vi-compact .form.compact-booking{padding:15px!important}body.vi-compact .section{padding-block:22px!important}}
+@media(prefers-reduced-motion:reduce){body.vi-compact *,body.vi-compact *::before,body.vi-compact *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.hero-motion-toggle{display:none!important}}
+
+/* Dark photographic surfaces keep their own high-contrast palette in either theme. */
+body.vi-compact .vi-banner:not(.vi-banner-designed){color:#fff8eb!important;background:#273025!important}
+body.vi-compact .vi-banner:not(.vi-banner-designed)::before{background:linear-gradient(90deg,#101c15f2,#101c15b5)!important}
+body.vi-compact .vi-banner:not(.vi-banner-designed) :is(h2,p,.vi-banner-kicker){color:#fff8eb!important}
+body.vi-compact .home-hero .chef-availability{color:#83efb6!important;background:#133025df!important;border-color:#53d49566!important}
+body.vi-compact .home-hero .chef-availability[data-available="0"]{color:#ffaba8!important;background:#3b2025df!important;border-color:#f2757566!important}
+body.vi-compact .admin-shell .stat{background:var(--a-glass)!important;box-shadow:var(--a-shadow)!important;backdrop-filter:blur(18px);border-radius:16px!important}
+body.vi-compact :is(.customer-metrics>div,.customer-workspace,.customer-order,.customer-booking,.workspace-group){background:var(--a-glass)!important;border:1px solid var(--c-line)!important;box-shadow:var(--a-shadow)!important;backdrop-filter:blur(18px);border-radius:16px!important}
+body.vi-compact .customer-head{border-bottom:1px solid var(--c-line);padding-bottom:20px}
+html[data-theme="light"] body.vi-compact .vi-customer-dash :is(h1,h2,h3,strong,b,label){color:var(--c-text)!important}
+
+body.vi-compact details.checkout-panel>summary{display:flex;align-items:center;list-style:none;cursor:pointer;margin-bottom:0!important}
+body.vi-compact details.checkout-panel>summary::-webkit-details-marker{display:none}
+body.vi-compact details.checkout-panel[open]>summary{margin-bottom:16px!important}
+.checkout-disclosure{margin-left:auto;color:var(--c-gold);font-size:18px}.checkout-panel[open] .checkout-disclosure{rotate:180deg}
+.checkout-details-next{margin-top:14px!important}.checkout-panel{scroll-margin-top:80px}
