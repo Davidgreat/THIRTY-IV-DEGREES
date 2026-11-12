@@ -6,6 +6,7 @@ function admin_tool_groups():array{return [
  'bookings'=>['Chef & catering bookings','Review inquiries, send quotations and confirm events.'],
  'calendar'=>['Availability calendar','Block unavailable dates and review upcoming events.']]],
  'menu'=>['title'=>'Menu & stock','hint'=>'Products, choices and inventory','icon'=>'02','tools'=>[
+ 'categories'=>['Menu categories','Create or rename categories and choose which appear in the Store.'],
  'products'=>['Menu & products','Add meals, prices, categories and customization choices.'],
  'inventory'=>['Stock control','Track available quantities and low-stock thresholds.']]],
  'payments'=>['title'=>'Payments & reports','hint'=>'Paystack, transactions and refunds','icon'=>'03','tools'=>[
@@ -28,6 +29,7 @@ function admin_tool_groups():array{return [
  'reviews'=>['Experience reviews','Approve or hide customer feedback about the business.'],
  'product-reviews'=>['Meal reviews','Moderate ratings and feedback on individual meals.']]],
  'system'=>['title'=>'Access & system','hint'=>'Team permissions and maintenance','icon'=>'06','tools'=>[
+ 'security'=>['My account & security','Change your own owner login email and password.'],
  'staff'=>['Staff access','Assign manager roles and restrict operational permissions.'],
  'integrations'=>['Other connections','Review optional API fields and integration requirements.'],
  'plugins'=>['Plugins','Manage trusted extensions installed on your website.'],

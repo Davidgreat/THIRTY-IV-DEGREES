@@ -2,7 +2,8 @@
 
 PHP/MySQL source imported from the supplied cPanel application. The 6.0.0 update adds owner-managed test/live Paystack, payment/access fixes, account recovery, promotional-banner management and responsive glass dashboards.
 
-- [Current 6.2.1 password visibility update](releases/6.2.1/README.md)
+- [Current 6.3.0 owner security and product galleries](releases/6.3.0/README.md)
+- [6.2.1 password visibility update](releases/6.2.1/README.md)
 - [6.2.0 visual experience update](releases/6.2.0/README.md)
 - [6.1.2 checkout submission repair](releases/6.1.2/README.md)
 - [Previous 6.1.1 checkout hotfix](releases/6.1.1/README.md)
@@ -33,3 +34,5 @@ Build the 6.1.2 checkout repair with `python3 release/build-612.py` against the 
 Build the 6.2.0 presentation update with `python3 release/build-620.py` against commit `d05db5f` (6.1.2).
 
 Build the 6.2.1 authentication presentation patch with `python3 release/build-621.py` against commit `1d94f39` (6.2.0).
+
+Build the 6.3.0 update with `python3 release/build-630.py` against commit `abb14fa` (6.2.1). This release includes an additive catalogue migration and requires owners to sign in again after installation.
