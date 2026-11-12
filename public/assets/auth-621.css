@@ -1,0 +1,4 @@
+body.vi-compact .form .auth-password-toggle{display:flex;align-items:center;gap:10px;min-height:44px;margin:6px 0 0;padding:3px 0;cursor:pointer;font-size:13px;color:var(--c-text)}
+body.vi-compact .form .auth-password-toggle[hidden]{display:none!important}
+body.vi-compact .form .auth-password-toggle input{appearance:auto;width:18px!important;height:18px!important;min-height:18px!important;max-width:18px!important;flex:0 0 18px;padding:0!important;margin:0!important;accent-color:#b0873e;cursor:pointer}
+.auth-password-hint{display:block;margin-top:7px;font-size:12px;line-height:1.5;color:var(--c-muted)}
