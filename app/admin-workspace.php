@@ -24,7 +24,7 @@ function admin_tool_groups():array{return [
  'customers'=>['title'=>'Customers & messages','hint'=>'People, communication and reviews','icon'=>'05','tools'=>[
  'customers'=>['Customer accounts','Look up registered customers and their contact details.'],
  'whatsapp'=>['WhatsApp messages','Configure the business number and open prepared customer messages.'],
- 'email'=>['Email delivery','Configure SMTP, test sending and review the delivery queue.'],
+ 'email'=>['Email delivery','Configure SMTP or Microsoft OAuth2, send a test and review delivery.'],
  'email-templates'=>['Email templates','Edit the messages sent for orders, bookings and payment updates.'],
  'reviews'=>['Experience reviews','Approve or hide customer feedback about the business.'],
  'product-reviews'=>['Meal reviews','Moderate ratings and feedback on individual meals.']]],

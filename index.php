@@ -136,6 +136,7 @@ if($path==='booking/availability'){
  $kind=in_array($_GET['kind']??'',['chef','catering'],true)?$_GET['kind']:'chef';$date=substr((string)($_GET['date']??''),0,10);$time=substr((string)($_GET['time']??''),0,5);
  echo json_encode(['available'=>booking_slot_open($kind,$date,$time),'note'=>'Availability is indicative until your booking is confirmed.']);exit;
 }
+if($path==='admin/email/microsoft/callback'&&!post())microsoft_mail_callback();
 if($path==='logout'){unset($_SESSION['uid'],$_SESSION['checkout_draft'],$_SESSION['checkout_errors'],$_SESSION['checkout_last_order']);session_regenerate_id(true);go('');}
 if(post()){
  check_csrf();if(defined('THIRTYVI_CHECKOUT_ENDPOINT'))checkout_trace('csrf_verified');rate_limit('post',60,300);
@@ -367,32 +368,12 @@ if(post()){
     foreach(['mail_subject_'.$key=>$subject,'mail_body_'.$key=>$body] as $k=>$v)sql('INSERT INTO settings (`key`,value) VALUES (?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)',[$k,$v]);
    }audit('email.templates');flash('Email templates saved.');go('admin/email-templates');
   }
-  if($action==='email/settings'){
-   if(admin()['role']!=='admin')abort(403,'Owner access required');
-   $host=str('smtp_host',190);$port=(int)($_POST['smtp_port']??587);$security=str('smtp_security',12);
-   $from=str('smtp_from',190);$username=str('smtp_user',190);$sender=str('smtp_from_name',100);
-   if(!preg_match('/^[a-z0-9.-]+$/i',$host)||$port<1||$port>65535||!in_array($security,['ssl','starttls'],true)||!filter_var($from,FILTER_VALIDATE_EMAIL))abort(400,'Invalid SMTP configuration');
-   foreach(['smtp_host'=>$host,'smtp_port'=>(string)$port,'smtp_security'=>$security,'smtp_from'=>$from,'smtp_user'=>$username,'smtp_from_name'=>$sender] as $k=>$v)save_integration($k,$v);
-   save_integration('smtp_password',(string)($_POST['smtp_password']??''),true);
-   audit('email.smtp.settings');flash('SMTP configuration saved.');go('admin/email');
+  if($action==='email/settings')email_settings_save();
+  if($action==='email/microsoft/connect')microsoft_mail_connect();
+  if($action==='email/microsoft/disconnect'){
+   try{microsoft_mail_disconnect();try{audit('email.microsoft.disconnected');}catch(Throwable $ignored){}flash('Microsoft connection removed from this platform.');}catch(Throwable $error){flash(get_class($error)===RuntimeException::class?$error->getMessage():'Microsoft could not be disconnected. Please try again.','error');}go('admin/email');
   }
-  if($action==='email/test'){
-   if(admin()['role']!=='admin')abort(403,'Owner access required');
-   $to=trim((string)($_POST['test_recipient']??''));
-   if(strlen($to)>190||!filter_var($to,FILTER_VALIDATE_EMAIL))abort(400,'Enter a valid test recipient email.');
-   $last=(int)($_SESSION['smtp_test_last']??0);
-   if(time()-$last<60){flash('Please wait one minute before sending another SMTP test.','error');go('admin/email');}
-   $_SESSION['smtp_test_last']=time();
-   try{
-    smtp_send($to,'36° - SMTP connection test',"This is a test message from 36°.\n\nYour saved SMTP configuration successfully submitted this message to the mail server.\n\nTime: ".date('Y-m-d H:i:s T'));
-    audit('email.smtp.test.success');
-    flash('SMTP server accepted the test email. Check the recipient inbox and spam folder.');
-   }catch(Throwable $e){
-    audit('email.smtp.test.failed');
-    flash('Test failed. Verify SMTP host, port, TLS mode, credentials and hosting outbound SMTP access. Server error details are not displayed for security.','error');
-   }
-   go('admin/email');
-  }
+  if($action==='email/test'){require_once ROOT.'/app/email-admin.php';email_test_send();}
   if($action==='email/retry'){
    if(admin()['role']!=='admin')abort(403,'Owner access required');
    $id=(int)($_POST['id']??0);
