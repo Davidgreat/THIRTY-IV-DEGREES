@@ -23,6 +23,9 @@ function owner_security_save(string $kind):never{
   }
   sql('DELETE FROM account_reset_tokens WHERE user_id=?',[$owner['id']]);
   sql('INSERT INTO audit_logs(user_id,action,details) VALUES(?,?,?)',[$owner['id'],'owner.security.'.$kind,'Self-service credential change']);
+  $notificationId=(int)db()->lastInsertId();
+  if($kind==='password')email_queue_template('password_changed','account:owner_password:'.$owner['id'].':'.$notificationId,$account['email'],['name'=>$owner['name']]);
+  else{email_queue_template('account_email_changed','account:email_change:'.$owner['id'].':'.$notificationId.':old',$account['email'],['name'=>$owner['name']]);email_queue_template('account_email_changed','account:email_change:'.$owner['id'].':'.$notificationId.':new',$email,['name'=>$owner['name']]);}
   db()->commit();
  }catch(Throwable $error){
   if(db()->inTransaction())db()->rollBack();

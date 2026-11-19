@@ -24,7 +24,8 @@ while($c=stream_socket_accept($server,-1)){
    if(!isset($state[$ref]))$code=404;
    elseif($state[$ref]['domain']!==$mode)$code=404;
    else $data=$state[$ref];
-  }else $code=404;
+  }elseif(preg_match('~^/refund/([0-9]+)$~',$path,$m)){$refunds=is_file('/tmp/paystack-refund-state.json')?json_decode(file_get_contents('/tmp/paystack-refund-state.json'),true):[];$data=['id'=>(int)$m[1],'status'=>$refunds[$m[1]]??'pending'];}
+  else $code=404;
   file_put_contents('/tmp/paystack-mock-state.json',json_encode($state));
   $response=json_encode(['status'=>$code===200,'message'=>$code===400?'Business is not activated for live payments':'OK','data'=>$data]);
   fwrite($c,"HTTP/1.1 $code Result\r\nContent-Type: application/json\r\nContent-Length: ".strlen($response)."\r\nConnection: close\r\n\r\n".$response);

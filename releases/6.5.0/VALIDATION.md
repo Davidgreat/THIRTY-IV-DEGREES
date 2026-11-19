@@ -1,0 +1,17 @@
+# Validation — 6.5.0
+
+All execution used disposable local PHP 8.4/MariaDB 11.8 data and local TLS SMTP/Paystack/Microsoft fixtures, with certificate verification enabled. No production credentials, actual charges or external recipients were used.
+
+- 41 lifecycle checks passed through real HTTP actions, verified gateway fixture responses and the actual CLI cron entry point. Covered registration welcome, generic unknown-account recovery, current reset link delivery/use, expired/replaced link suppression, reset retry prevention, password-change email, order receipt, verified-payment idempotency, real/revisited/unchanged order statuses, completion/cancellation, booking creation/quote changes/statuses, processed-versus-pending refunds, owner-only manual drain, cron heartbeat, mobile layout and SMTP acceptance of every valid generated lifecycle message. Only two obsolete reset links were intentionally failed; valid generated notifications drained successfully.
+- 57 owner/catalogue checks passed, including new old/new-email security alerts and password-change alerts without plaintext passwords, plus prior permissions/session revocation/category/gallery checks.
+- Existing payment suite: 34 passed, including TLS gateway initialization/verification, amount/reference/mode checks, signed webhooks, idempotency, stock behavior, booking payment status and password recovery. Its CLI owner fixture now binds the session stamp used by real owner login since 6.3.0.
+- Existing email suites: 52 + 14 passed, preserving password SMTP, Microsoft OAuth2/PKCE/refresh, encryption, certificate rejection, personal Outlook, clear feedback, permissions and responsive layout.
+- Exact 58,870-byte ZIP installed through the existing dashboard updater on a 6.4.0 fixture: 28 checks passed, preserving email/Paystack settings, hosting config, uploads, orders and bookings. Restore point created and duplicate install rejected; worker-health controls installed.
+- Existing HTTP functional suite: 22 passed for guest ordering, booking, payment settings, CSRF and authorization. Accumulated synthetic banner fixtures were disabled during setup to respect the existing three-banner limit.
+- PHP syntax, whitespace and source/archive checks passed. No schema changes. Gateway/payment verification/checkout/OAuth files match 6.4.0. Refund changes only retain the existing update statement's affected-row count and enqueue after the confirmed transition.
+
+The test cron command ran inside the fixture with explicit local certificate trust. Earlier ready fixture emails were temporarily postponed then restored to isolate lifecycle delivery. A gateway fixture certificate mismatch was corrected by restarting that local fixture and using the current combined CA bundle; TLS verification was never disabled.
+
+Live limits: the hosted queue, customer account email and cPanel Cron Jobs were not accessible. The user confirmed no known cron setup, which is consistent with direct test mail working while queued recovery waits. The live blocker must be confirmed by setting up the displayed cron command and observing a fresh worker timestamp. Sender acceptance does not establish inbox placement. This release provides the missing trigger fixes and the controls/evidence needed to verify hosted automation.
+
+Build with `python3 release/build-650.py` against commit `59c2dde` (6.4.0). Test fixtures, hosting config, credentials, storage and uploads are excluded from the update ZIP.

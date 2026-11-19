@@ -150,7 +150,7 @@ if(post()){
   if(account_reset_password(str('reset_token',64),(string)($_POST['password']??''))){flash('Password updated. Sign in with your new password.');go('login');}
   flash('This link is expired or invalid, or the password is shorter than 10 characters. Request another link.','error');go('forgot-password');
  }
- if($path==='register'){$name=str('name',150);$email=strtolower(str('email',190));$password=(string)($_POST['password']??'');if(!filter_var($email,FILTER_VALIDATE_EMAIL)||strlen($password)<10||!$name){flash('Provide valid details and a password of at least 10 characters.','error');go('register');}try{sql('INSERT INTO users(name,email,password) VALUES(?,?,?)',[$name,$email,password_hash($password,PASSWORD_DEFAULT)]);$_SESSION['uid']=(int)db()->lastInsertId();session_regenerate_id(true);go('account');}catch(PDOException $e){flash('This email may already be registered.','error');go('register');}}
+ if($path==='register'){$name=str('name',150);$email=strtolower(str('email',190));$password=(string)($_POST['password']??'');if(!filter_var($email,FILTER_VALIDATE_EMAIL)||strlen($password)<10||!$name){flash('Provide valid details and a password of at least 10 characters.','error');go('register');}try{sql('INSERT INTO users(name,email,password) VALUES(?,?,?)',[$name,$email,password_hash($password,PASSWORD_DEFAULT)]);$_SESSION['uid']=(int)db()->lastInsertId();session_regenerate_id(true);run_hook('account.created',['user_id'=>$_SESSION['uid']]);go('account');}catch(PDOException $e){flash('This email may already be registered.','error');go('register');}}
  if($path==='track'){
   rate_limit('order_track',8,600);
   $ref=strtoupper(str('reference',40));
@@ -365,6 +365,7 @@ if(post()){
    foreach(email_template_defaults() as $key=>$default){
     $subject=trim((string)($subjects[$key]??''));$body=trim((string)($bodies[$key]??''));
     if($subject===''||$body===''||strlen($subject)>190||strlen($body)>10000||strpbrk($subject,"\r\n")!==false)abort(400,'Invalid email template');
+    if($key==='password_reset'&&!str_contains($body,'{link}'))abort(400,'The password-reset template must contain {link}.');
     foreach(['mail_subject_'.$key=>$subject,'mail_body_'.$key=>$body] as $k=>$v)sql('INSERT INTO settings (`key`,value) VALUES (?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)',[$k,$v]);
    }audit('email.templates');flash('Email templates saved.');go('admin/email-templates');
   }
@@ -374,9 +375,13 @@ if(post()){
    try{microsoft_mail_disconnect();try{audit('email.microsoft.disconnected');}catch(Throwable $ignored){}flash('Microsoft connection removed from this platform.');}catch(Throwable $error){flash(get_class($error)===RuntimeException::class?$error->getMessage():'Microsoft could not be disconnected. Please try again.','error');}go('admin/email');
   }
   if($action==='email/test'){require_once ROOT.'/app/email-admin.php';email_test_send();}
+  if($action==='email/process'){
+   try{$result=email_worker_run(5,'manual');flash(!empty($result['busy'])?'The email worker is already processing messages.':'Queue processed: '.$result['sent'].' accepted, '.$result['failed_or_retry'].' failed/retrying, '.$result['skipped'].' expired resets skipped.');}catch(Throwable $error){flash('Pending email could not be processed. Check delivery settings and hosting logs.','error');}go('admin/email');
+  }
   if($action==='email/retry'){
    if(admin()['role']!=='admin')abort(403,'Owner access required');
    $id=(int)($_POST['id']??0);
+   $item=one('SELECT event_key,recipient FROM email_queue WHERE id=?',[$id]);if($item&&!email_queue_item_current($item)){flash('That password-reset link expired or was replaced. Request a new link instead.','error');go('admin/email');}
    sql("UPDATE email_queue SET status='retry',available_at=NOW(),last_error=NULL WHERE id=? AND status='failed'",[$id]);
    audit('email.retry',(string)$id);flash('Email scheduled for retry.');go('admin/email');
   }
@@ -402,8 +407,13 @@ if(post()){
    audit('whatsapp.draft.opened',$kind.' #'.$id.' · '.$template.' (not proof of sending)');
    header('Location: '.$url, true, 303);exit;
   }
-  if($action==='order/status'){$id=(int)($_POST['id']??0);$status=str('status',20);if(!in_array($status,['pending','accepted','preparing','ready','dispatched','completed','cancelled'],true))abort(400,'Invalid status');$previous=one('SELECT status,fulfillment FROM orders WHERE id=?',[$id]);if(!$previous)abort(404,'Order not found');if($previous['fulfillment']==='pickup'&&$status==='dispatched')abort(400,'Pickup orders cannot be marked as dispatched.');if(in_array($previous['status'],['cancelled','completed'],true)&&$previous['status']!==$status)abort(400,'Completed or cancelled orders cannot be changed from this screen.');
-  sql('UPDATE orders SET status=? WHERE id=?',[$status,$id]);if($previous['status']!==$status)sql('INSERT INTO order_status_events(order_id,status,actor_id) VALUES(?,?,?)',[$id,$status,admin()['id']]);if($status==='cancelled')sql('DELETE FROM stock_reservations WHERE order_id=?',[$id]);audit('order.status',$id.' '.$status);run_hook('order.status',['id'=>$id,'status'=>$status]);go('admin/orders');}
+  if($action==='order/status'){
+   $id=(int)($_POST['id']??0);$status=str('status',20);if(!in_array($status,['pending','accepted','preparing','ready','dispatched','completed','cancelled'],true))abort(400,'Invalid status');$eventId=null;
+   try{db()->beginTransaction();$previous=one('SELECT status,fulfillment FROM orders WHERE id=? FOR UPDATE',[$id]);if(!$previous)throw new InvalidArgumentException('Order not found');if($previous['fulfillment']==='pickup'&&$status==='dispatched')throw new InvalidArgumentException('Pickup orders cannot be marked as dispatched.');if(in_array($previous['status'],['cancelled','completed'],true)&&$previous['status']!==$status)throw new InvalidArgumentException('Completed or cancelled orders cannot be changed from this screen.');
+    sql('UPDATE orders SET status=? WHERE id=?',[$status,$id]);if($previous['status']!==$status){sql('INSERT INTO order_status_events(order_id,status,actor_id) VALUES(?,?,?)',[$id,$status,admin()['id']]);$eventId=(int)db()->lastInsertId();}if($status==='cancelled')sql('DELETE FROM stock_reservations WHERE order_id=?',[$id]);audit('order.status',$id.' '.$status);db()->commit();
+   }catch(Throwable $error){if(db()->inTransaction())db()->rollBack();abort($error instanceof InvalidArgumentException?400:500,$error instanceof InvalidArgumentException?$error->getMessage():'Order status could not be saved.');}
+   if($eventId!==null)run_hook('order.status',['id'=>$id,'status'=>$status,'event_id'=>$eventId]);flash('Order status saved.');go('admin/orders');
+  }
   if($action==='booking/update'){
    $id=(int)($_POST['id']??0);$status=str('status',30);$quote=str('quote',30);$deposit=str('deposit',30);
    if(!in_array($status,['inquiry','quoted','awaiting_deposit','confirmed','completed','cancelled'],true))abort(400,'Invalid status');
@@ -411,9 +421,9 @@ if(post()){
    $b=one('SELECT * FROM bookings WHERE id=?',[$id]);if(!$b)abort(404,'Booking not found');
    $lockName='thirtyvi:booking:'.$b['kind'].':'.$b['event_date'].':'.$b['event_time'];
    $locked=one('SELECT GET_LOCK(?,5) AS acquired',[$lockName]);if((int)($locked['acquired']??0)!==1)abort(409,'Booking is being updated. Retry.');
-   try{if(in_array($status,['confirmed','awaiting_deposit'],true)&&!booking_slot_open($b['kind'],$b['event_date'],substr((string)$b['event_time'],0,5),$id)){
+   try{$b=one('SELECT * FROM bookings WHERE id=?',[$id]);$notify=$b['status']!==$status||(float)$b['quote']!==(float)$quote||(float)$b['deposit']!==(float)$deposit;if(in_array($status,['confirmed','awaiting_deposit'],true)&&!booking_slot_open($b['kind'],$b['event_date'],substr((string)$b['event_time'],0,5),$id)){
      flash('This date and time has reached capacity. Choose another slot before confirming.','error');go('admin/bookings');
-   }sql('UPDATE bookings SET status=?,quote=?,deposit=? WHERE id=?',[$status,$quote,$deposit,$id]);audit('booking.update',(string)$id);run_hook('booking.status',['id'=>$id,'status'=>$status]);
+   }sql('UPDATE bookings SET status=?,quote=?,deposit=? WHERE id=?',[$status,$quote,$deposit,$id]);audit('booking.update',(string)$id);$eventId=(int)db()->lastInsertId();if($notify)run_hook('booking.status',['id'=>$id,'status'=>$status,'event_id'=>$eventId]);
    }finally{sql('SELECT RELEASE_LOCK(?)',[$lockName]);}go('admin/bookings');
   }
   if($action==='paystack/save'){
@@ -527,7 +537,7 @@ if($path==='about'){layout('Our Story',function(){head('Our Story','The people, 
 if(preg_match('~^page/([a-z0-9-]+)$~',$path,$m)){$p=one('SELECT * FROM pages WHERE slug=?',[$m[1]]);if(!$p)abort(404,'Page not found');layout($p['title'],function()use($p){head($p['title']);?><section class="section container" style="max-width:850px"><p><?=nl2br(esc($p['body']))?></p></section><?php });exit;}
 if(in_array($path,['forgot-password','reset-password'],true)){
  header('Referrer-Policy: no-referrer');header('Cache-Control: no-store');
- $reset=$path==='reset-password';layout($reset?'Choose a password':'Reset your password',function()use($reset){head($reset?'A fresh start.':'Forgot your password?');?><section class="section container" style="max-width:540px"><p class="muted"><?=$reset?'Choose at least 10 characters. Your reset link can only be used once.':'Enter your account email and we will send a reset link.'?></p><form class="form" method="post"><?=token()?><?php if($reset):?><input type="hidden" name="reset_token" value="<?=esc(substr((string)($_GET['token']??''),0,64))?>"><?php auth_password_field('new-password',true);?><?php else:field('Account email','email','email');endif;?><button class="btn gold"><?=$reset?'Update password':'Send reset link'?></button></form><p><a href="/login">Back to sign in →</a></p></section><?php });exit;
+ $reset=$path==='reset-password';layout($reset?'Choose a password':'Reset your password',function()use($reset){head($reset?'A fresh start.':'Forgot your password?');?><section class="section container" style="max-width:540px"><p class="muted"><?=$reset?'Choose at least 10 characters. Your reset link can only be used once.':'Enter the email you use to sign in. Your business contact or SMTP sender address may be different.'?></p><form class="form" method="post"><?=token()?><?php if($reset):?><input type="hidden" name="reset_token" value="<?=esc(substr((string)($_GET['token']??''),0,64))?>"><?php auth_password_field('new-password',true);?><?php else:field('Account email','email','email');endif;?><button class="btn gold"><?=$reset?'Update password':'Send reset link'?></button></form><p><a href="/login">Back to sign in →</a></p></section><?php });exit;
 }
 if(in_array($path,['login','register'],true)){$register=$path==='register';layout($register?'Create Account':'Sign In',function()use($register){head($register?'Create an Account':'Welcome Back');?><section class="section container" style="max-width:540px"><form class="form" method="post"><?=token()?><?php if($register):?><label for="name">Your name</label><input id="name" name="name" autocomplete="name" maxlength="150" required><?php endif;?><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="<?=$register?'email':'username'?>" autocapitalize="off" spellcheck="false" maxlength="190" required><?php auth_password_field('password',$register);?><button class="btn gold full"><?=$register?'Create Account':'Sign In'?></button></form><p class="center"><?=$register?'Already registered? <a href="/login">Sign in</a>':'New here? <a href="/register">Create an account</a> · <a href="/forgot-password">Forgot password?</a>'?></p></section><?php });exit;}
 if($path==='track'){layout('Track Your Order',function(){?><section class="container vi-track-page"><div class="vi-track-card"><span class="eyebrow">ORDER TRACKING</span><h1>Track your order</h1><p class="muted">Enter your order reference to check its current stage.</p><form class="vi-track-form" action="/track" method="post"><?=token()?><label for="vi-order-ref">Order reference</label><div class="vi-track-input-row"><input id="vi-order-ref" name="reference" required maxlength="40" autocomplete="off" placeholder="ORD-XXXXXXXXXX"><button class="btn gold" type="submit">Track →</button></div></form><p class="muted small">Status only. For payment or delivery details, sign in or contact support.</p></div></section><?php });exit;}

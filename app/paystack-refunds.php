@@ -12,8 +12,8 @@ function refund_reconcile(int $id):void{
  $payment=one('SELECT * FROM payments WHERE id=?',[$r['payment_id']]);
  $data=paystack_refund_api('GET','refund/'.rawurlencode((string)$r['gateway_refund_id']),null,$payment);
  $state=refund_gateway_status((string)($data['status']??'pending'));
- sql("UPDATE refund_requests SET status=?,gateway_status=?,updated_at=NOW() WHERE id=? AND status NOT IN ('completed','rejected')",[$state,(string)($data['status']??'pending'),$id]);
- if($state==='completed')refund_recompute_entity((int)$r['payment_id']);
+ $updated=sql("UPDATE refund_requests SET status=?,gateway_status=?,updated_at=NOW() WHERE id=? AND status NOT IN ('completed','rejected')",[$state,(string)($data['status']??'pending'),$id]);
+ if($state==='completed'){refund_recompute_entity((int)$r['payment_id']);if($updated->rowCount()>0)run_hook('refund.completed',['refund_id'=>$id]);}
 }
 function refund_recompute_entity(int $paymentId):void{
  $pay=one('SELECT * FROM payments WHERE id=?',[$paymentId]);if(!$pay)return;

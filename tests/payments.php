@@ -7,7 +7,7 @@ function order_fixture(?int $uid=2):int{
  sql("INSERT INTO orders(reference,user_id,customer_name,email,phone,fulfillment,subtotal,total) VALUES(?,?,?,'customer@example.test','08012345678','pickup',8500,8500)",['ORD-'.strtoupper(bin2hex(random_bytes(5))),$uid,'Test Customer']);$id=(int)db()->lastInsertId();
  sql("INSERT INTO order_items(order_id,product_id,product_name,unit_price,quantity) VALUES(?,2,'Jollof',8500,1)",[$id]);return $id;
 }
-$_SESSION['uid']=1;
+$_SESSION['uid']=1;$_SESSION['owner_auth_stamp']=owner_auth_stamp(one('SELECT email,password FROM users WHERE id=1'));
 $input=['paystack_mode'=>'test','paystack_enabled'=>'1','paystack_test_public'=>'pk_test_'.str_repeat('a',24),'paystack_test_secret'=>'sk_test_'.str_repeat('a',24),'paystack_live_public'=>'pk_live_'.str_repeat('b',24),'paystack_live_secret'=>'sk_live_'.str_repeat('b',24)];
 paystack_save_settings($input);
 check(str_starts_with(one('SELECT value FROM settings WHERE `key`=?',['paystack_test_secret'])['value'],'enc:'),'Secret encrypted at rest');

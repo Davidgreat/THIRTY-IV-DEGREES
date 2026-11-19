@@ -8,6 +8,14 @@ function email_enqueue(string $eventKey,string $recipient,string $subject,string
     sql('INSERT INTO email_queue(event_key,recipient,subject,body,status,available_at) VALUES(?,?,?,?,\'pending\',NOW()) ON DUPLICATE KEY UPDATE id=id',[$eventKey,$recipient,mb_substr(str_replace(["\r","\n"],' ',$subject),0,190),mb_substr($body,0,10000)]);
 }
 function email_template_defaults():array{return [
+ 'account_email_changed'=>['subject'=>'Your 36° login email changed','body'=>"Hello {name},\n\nYour account sign-in email was changed. If this was not you, contact our team immediately.\n\n36°"],
+ 'refund_completed'=>['subject'=>'Refund processed · {reference}','body'=>"Hello {name},\n\nThe payment provider marked a refund of {amount} for {reference} as processed. The time it takes to appear in your account depends on your bank.\n\n36°"],
+ 'account_created'=>['subject'=>'Welcome to 36°','body'=>"Hello {name},\n\nYour account is ready. You can now order meals, track your orders and plan private dining with us.\n\n36°"],
+ 'password_reset'=>['subject'=>'Reset your 36° password','body'=>"Use this link within 30 minutes to choose a new password:\n\n{link}\n\nIf you did not request this, ignore this email.\n\n36°"],
+ 'password_changed'=>['subject'=>'Your 36° password was changed','body'=>"Hello {name},\n\nYour account password was changed successfully. If this was not you, contact our team immediately.\n\n36°"],
+ 'order_completed'=>['subject'=>'Order completed · {reference}','body'=>"Hello {name},\n\nYour order {reference} is now completed. Thank you for dining with 36°.\n\n36°"],
+ 'order_cancelled'=>['subject'=>'Order cancelled · {reference}','body'=>"Hello {name},\n\nYour order {reference} has been cancelled. If you paid, contact our team about your refund status. This cancellation notice does not confirm a refund.\n\n36°"],
+ 'booking_quoted'=>['subject'=>'Your quotation · {reference}','body'=>"Hello {name},\n\nYour booking {reference} for {date} has been quoted at {quote}. The requested deposit is {deposit}. Our team will confirm the arrangements with you.\n\n36°"],
  'order_created'=>['subject'=>'Order received · {reference}','body'=>"Hello {name},\n\nYour order {reference} for {amount} has been received. Payment is not confirmed until verified.\n\nThirthy Vi Degrees"],
  'booking_created'=>['subject'=>'Booking inquiry · {reference}','body'=>"Hello {name},\n\nYour booking inquiry {reference} for {date} was received. This is not a booking confirmation.\n\nThirthy Vi Degrees"],
  'payment_success'=>['subject'=>'Payment verified · {reference}','body'=>"Hello {name},\n\nPayment for {reference} has been verified. Amount: {amount}. Private chef bookings still require confirmation.\n\nThirthy Vi Degrees"],
@@ -16,12 +24,14 @@ function email_template_defaults():array{return [
 ];}
 function email_render(string $key,array $data):array{
  $defaults=email_template_defaults();if(!isset($defaults[$key]))throw new InvalidArgumentException('Unknown email template');
- $vars=[];foreach(['name','reference','amount','date','status'] as $field)$vars['{'.$field.'}']=str_replace(["\r","\n"],' ',(string)($data[$field]??''));
+ $vars=[];foreach(['name','reference','amount','date','status','link','quote','deposit'] as $field)$vars['{'.$field.'}']=str_replace(["\r","\n"],' ',(string)($data[$field]??''));
  return [strtr(setting('mail_subject_'.$key,$defaults[$key]['subject']),$vars),strtr(setting('mail_body_'.$key,$defaults[$key]['body']),$vars)];
 }
 function email_queue_template(string $key,string $eventKey,string $recipient,array $data):void{[$subject,$body]=email_render($key,$data);email_enqueue($eventKey,$recipient,$subject,$body);}
 function email_enqueue_event(string $event,array $data):void {
- if($event==='order.created'){
+ if($event==='account.created'){
+  $account=one('SELECT id,name,email FROM users WHERE id=?',[(int)($data['user_id']??0)]);if($account)email_queue_template('account_created','account:created:'.$account['id'],$account['email'],['name'=>$account['name']]);
+ }elseif($event==='order.created'){
   $o=one('SELECT * FROM orders WHERE id=?',[(int)($data['order_id']??0)]);
   if($o)email_queue_template('order_created','order:created:'.$o['id'],$o['email'],['name'=>$o['customer_name'],'reference'=>$o['reference'],'amount'=>money($o['total'])]);
  }elseif($event==='booking.created'){
@@ -32,10 +42,16 @@ function email_enqueue_event(string $event,array $data):void {
   $kind=$pay['entity_type']??'';if(!in_array($kind,['order','booking'],true))return;
   $r=one('SELECT * FROM '.($kind==='order'?'orders':'bookings').' WHERE id=?',[(int)$pay['entity_id']]);
   if($r)email_queue_template('payment_success','payment:success:'.$pay['id'],$r['email'],['name'=>$r['customer_name']??$r['name']??'Customer','reference'=>$r['reference'],'amount'=>money($pay['amount'])]);
+ }elseif($event==='refund.completed'){
+  $refund=one("SELECT r.*,p.entity_type,p.entity_id FROM refund_requests r JOIN payments p ON p.id=r.payment_id WHERE r.id=? AND r.status='completed' AND r.amount>0",[(int)($data['refund_id']??0)]);
+  if($refund&&in_array($refund['entity_type'],['order','booking'],true)){$entity=one('SELECT * FROM '.($refund['entity_type']==='order'?'orders':'bookings').' WHERE id=?',[$refund['entity_id']]);if($entity)email_queue_template('refund_completed','refund:completed:'.$refund['id'],$entity['email'],['name'=>$entity['customer_name']??$entity['name'],'reference'=>$entity['reference'],'amount'=>money($refund['amount'])]);}
  }elseif(in_array($event,['order.status','booking.status'],true)){
   $kind=explode('.',$event)[0];$id=(int)($data['id']??0);$status=(string)($data['status']??'');
   $r=one('SELECT * FROM '.($kind==='order'?'orders':'bookings').' WHERE id=?',[$id]);
-  if($r)email_queue_template($kind.'_status',$kind.':status:'.$id.':'.$status,$r['email'],['name'=>$r['customer_name']??$r['name']??'Customer','reference'=>$r['reference'],'date'=>$r['event_date']??'','status'=>str_replace('_',' ',$status)]);
+  if($r){$template=$kind.'_status';if($kind==='order'&&in_array($status,['completed','cancelled'],true))$template='order_'.$status;if($kind==='booking'&&$status==='quoted')$template='booking_quoted';
+   $eventKey=$kind.':status:'.$id.':'.(isset($data['event_id'])?'event:'.(int)$data['event_id']:$status);
+   email_queue_template($template,$eventKey,$r['email'],['name'=>$r['customer_name']??$r['name']??'Customer','reference'=>$r['reference'],'date'=>$r['event_date']??'','status'=>str_replace('_',' ',$status),'quote'=>money($r['quote']??0),'deposit'=>money($r['deposit']??0)]);
+  }
  }
 }
 /** SMTP replies contain numeric codes only in errors; never expose server challenges. */
@@ -80,16 +96,37 @@ function smtp_send(string $to,string $subject,string $body):void {
  } finally {fclose($stream);}
 }
 function email_process_batch(int $limit=15):array {
-    $processed=0;$failed=0;$limit=max(1,min(50,$limit));
+    $processed=0;$failed=0;$skipped=0;$limit=max(1,min(50,$limit));
     sql("UPDATE email_queue SET status=IF(attempts>=5,'failed','retry'),available_at=NOW(),locked_at=NULL,last_error='Worker interrupted; retry scheduled' WHERE status='sending' AND locked_at<DATE_SUB(NOW(),INTERVAL 15 MINUTE)");
-    $rows=all("SELECT id FROM email_queue WHERE status IN ('pending','retry') AND available_at<=NOW() ORDER BY id LIMIT ".$limit);
+    $rows=all("SELECT id FROM email_queue WHERE status IN ('pending','retry') AND available_at<=NOW() ORDER BY CASE WHEN event_key LIKE 'password:reset:%' THEN 0 ELSE 1 END,id LIMIT ".$limit);
     foreach($rows as $row){
         $id=(int)$row['id'];
         $claimed=sql("UPDATE email_queue SET status='sending',attempts=attempts+1,locked_at=NOW() WHERE id=? AND status IN ('pending','retry') AND available_at<=NOW()",[$id]);
         if(!$claimed->rowCount())continue;
         $item=one('SELECT * FROM email_queue WHERE id=?',[$id]);
+        if(!email_queue_item_current($item)){sql("UPDATE email_queue SET status='failed',locked_at=NULL,last_error='Not sent: password reset expired or was replaced. Request a new link.' WHERE id=?",[$id]);$skipped++;continue;}
         try {smtp_send($item['recipient'],$item['subject'],$item['body']);sql("UPDATE email_queue SET status='sent',sent_at=NOW(),last_error=NULL WHERE id=?",[$id]);$processed++;}
         catch(Throwable $e){$attempts=(int)$item['attempts'];$terminal=$attempts>=5;$delay=min(3600,60*(2**min(5,$attempts)));sql("UPDATE email_queue SET status=?,last_error=?,available_at=DATE_ADD(NOW(),INTERVAL ? SECOND),locked_at=NULL WHERE id=?",[$terminal?'failed':'retry',substr($e->getMessage(),0,220),$delay,$id]);$failed++;}
     }
-    return ['sent'=>$processed,'failed_or_retry'=>$failed];
+    return ['sent'=>$processed,'failed_or_retry'=>$failed,'skipped'=>$skipped];
+}
+
+/** Never send an expired, replaced or wrong-account reset link from an old backlog. */
+function email_queue_item_current(array $item):bool{
+ if(!str_starts_with((string)$item['event_key'],'password:reset:'))return true;
+ $hash=substr($item['event_key'],15);if(!preg_match('/^[a-f0-9]{64}$/D',$hash))return false;
+ return one('SELECT r.user_id FROM account_reset_tokens r JOIN users u ON u.id=r.user_id WHERE r.token_hash=? AND r.expires_at>NOW() AND u.email=?',[$hash,$item['recipient']])!==null;
+}
+function email_worker_run(int $limit=15,string $origin='cron'):array{
+ $name='thirtyvi-email-worker-'.substr(hash('sha256',(string)cfg()['db_name']),0,20);
+ if((int)(one('SELECT GET_LOCK(?,0) ok',[$name])['ok']??0)!==1)return ['sent'=>0,'failed_or_retry'=>0,'skipped'=>0,'busy'=>true];
+ try{
+  if($origin==='cron')mail_put('mail_cron_last_started',(string)time());
+  $result=email_process_batch($limit);$record=['time'=>time(),'origin'=>$origin,'result'=>$result];mail_put('mail_worker_last_result',json_encode($record));
+  if($origin==='cron')mail_put('mail_cron_last_finished',(string)time());return $result;
+ }finally{sql('SELECT RELEASE_LOCK(?)',[$name]);}
+}
+function email_cron_command():string{
+ $binary=PHP_BINDIR.'/php';if(!is_executable($binary))$binary=is_executable('/usr/local/bin/php')?'/usr/local/bin/php':'php';
+ return escapeshellarg($binary).' '.escapeshellarg((string)realpath(ROOT.'/app/cron-mail.php'));
 }
