@@ -6,6 +6,13 @@ function customer_address_text(array $address):string{return trim($address['addr
 function customer_safe_error(Throwable $error):string{return ($error instanceof InvalidArgumentException||get_class($error)===RuntimeException::class)?$error->getMessage():'This change could not be saved. Please try again.';}
 function customer_action(string $action):never{
  $u=require_login();if($u['role']!=='customer')abort(403,'Use a customer account for this action.');$id=(int)$u['id'];$back='account';
+ if($action==='wallet/refresh'){
+  header('Content-Type: application/json; charset=utf-8');header('Cache-Control: private, no-store');rate_limit('wallet_auto:'.$id,8,300);
+  $cursor=(int)($_SESSION['wallet_refresh_cursor']??0);$query="SELECT id,reference FROM wallet_topups WHERE user_id=? AND attempted=1 AND status='initialized' AND id>? ORDER BY id LIMIT 1";
+  $pending=one($query,[$id,$cursor])??one($query,[$id,0]);$credited=false;$message='';
+  if($pending){$_SESSION['wallet_refresh_cursor']=(int)$pending['id'];try{$credited=wallet_verify_topup($pending['reference']);}catch(Throwable $error){$message=customer_safe_error($error);}}
+  echo json_encode(['credited'=>$credited,'mode'=>paystack_mode(),'balance'=>wallet_balance($id,paystack_mode()),'message'=>$message]);exit;
+ }
  try{
   if($action==='profile'){$back='account/settings';$name=str('name',150);$phone=str('phone',60);if($name==='')throw new InvalidArgumentException('Enter your name.');db()->beginTransaction();sql('UPDATE users SET name=? WHERE id=?',[$name,$id]);sql('INSERT INTO customer_profiles(user_id,phone,dietary_notes) VALUES(?,?,?) ON DUPLICATE KEY UPDATE phone=VALUES(phone),dietary_notes=VALUES(dietary_notes)',[$id,$phone,str('dietary_notes',500)]);db()->commit();flash('Your profile is updated.');}
   elseif(in_array($action,['password','email'],true)){

@@ -112,7 +112,7 @@ if($path==='payment/webhook'&&post()){
  }
  http_response_code(200);exit('OK');
 }
-if($path==='payment/verify'&&str_starts_with((string)($_GET['reference']??''),'WAL-')){try{$ok=wallet_verify_topup(substr((string)$_GET['reference'],0,80));flash($ok?'Top-up verified. Your wallet is updated.':'Your top-up is awaiting verification. Check its status below.',$ok?'ok':'error');}catch(Throwable $error){flash('Your top-up could not be verified yet. Check its status below.','error');}go('account/wallet');}
+if($path==='payment/verify'&&str_starts_with((string)($_GET['reference']??''),'WAL-')){try{$ok=wallet_verify_topup(substr((string)$_GET['reference'],0,80));flash($ok?'Top-up verified. Your wallet is updated.':'Your top-up is awaiting verification. Check its status below.',$ok?'ok':'error');}catch(Throwable $error){flash(customer_safe_error($error),'error');}go('account/wallet');}
 if($path==='payment/verify'){
  $ref=substr((string)($_GET['reference']??''),0,80);
  try{$verified=verify_payment($ref);}catch(Throwable $e){$verified=false;}

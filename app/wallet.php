@@ -26,14 +26,60 @@ function wallet_start_topup(int $userId,int $amount,string $nonce,string $expect
   sql('UPDATE wallet_topups SET attempted=1 WHERE id=?',[$topup['id']]);$data=paystack_request('POST','transaction/initialize',$key,['reference'=>$topup['reference'],'email'=>$topup['email'],'amount'=>(int)$topup['amount'],'currency'=>'NGN','callback_url'=>rtrim((string)cfg()['app_url'],'/').'/payment/verify','metadata'=>['purpose'=>'wallet_topup','mode'=>$mode]]);$url=(string)($data['authorization_url']??'');if(!paystack_safe_checkout($url))throw new RuntimeException('The payment destination could not be verified.');sql('UPDATE wallet_topups SET authorization_url=? WHERE id=?',[$url,$topup['id']]);return $url;
  }finally{sql('SELECT RELEASE_LOCK(?)',[$lock]);}
 }
-function wallet_verify_topup(string $reference):bool{
- $topup=one('SELECT * FROM wallet_topups WHERE reference=?',[$reference]);if(!$topup)return false;if($topup['status']==='success')return true;
- $data=paystack_request('GET','transaction/verify/'.rawurlencode($reference),reveal_secret($topup['secret_cipher']));
- if(($data['status']??'')!=='success')return false;
- if(($data['reference']??'')!==$reference||($data['currency']??'')!=='NGN'||($data['domain']??'')!==$topup['mode']||!isset($data['amount'])||!ctype_digit((string)$data['amount'])||(int)$data['amount']!==(int)$topup['amount']){sql("UPDATE wallet_topups SET status='review' WHERE id=? AND status<>'success'",[$topup['id']]);throw new RuntimeException('This top-up needs a payment review. Contact our team with reference '.$reference.'.');}
- db()->beginTransaction();try{$locked=one('SELECT * FROM wallet_topups WHERE id=? FOR UPDATE',[$topup['id']]);if($locked['status']!=='success'){
-  wallet_change((int)$locked['user_id'],$locked['mode'],(int)$locked['amount'],'topup:'.$locked['id'],'topup',$reference);sql("UPDATE wallet_topups SET status='success' WHERE id=?",[$locked['id']]);$recipient=one('SELECT name,email FROM users WHERE id=?',[$locked['user_id']]);email_queue_template('wallet_topup','wallet:topup:'.$locked['id'],$recipient['email'],['name'=>$recipient['name'],'reference'=>$reference,'amount'=>money((int)$locked['amount']/100),'status'=>$locked['mode']==='test'?'Test wallet only — no real funds':'Live wallet']);
- }db()->commit();return true;}catch(Throwable $error){if(db()->inTransaction())db()->rollBack();throw $error;}
+/** A receipt is retriable notification work; it must never undo verified funds. */
+function wallet_topup_receipt(array $topup):void {
+ try {
+  $recipient=one('SELECT name,email FROM users WHERE id=?',[$topup['user_id']]);
+  if($recipient)email_queue_template('wallet_topup','wallet:topup:'.$topup['id'],$recipient['email'],['name'=>$recipient['name'],'reference'=>$topup['reference'],'amount'=>money((int)$topup['amount']/100),'status'=>$topup['mode']==='test'?'Test wallet only - no real funds':'Live wallet']);
+ }catch(Throwable $error){wallet_verification_diagnostic($topup['reference'],'receipt',$error);}
+}
+/** Store only diagnostic codes, never provider responses, SQL text or credentials. */
+function wallet_verification_diagnostic(string $reference,string $stage,Throwable $error):void {
+ $record=['time'=>time(),'reference'=>$reference,'stage'=>$stage,'type'=>get_class($error)];
+ if($error instanceof PDOException){$record['sqlstate']=(string)($error->errorInfo[0]??$error->getCode());$record['driver_code']=(int)($error->errorInfo[1]??0);}
+ error_log('Wallet verification: '.json_encode($record));
+ try{mail_put('wallet_last_verification_error',json_encode($record));}catch(Throwable $ignored){}
+}
+function wallet_verify_topup(string $reference):bool {
+ if(!preg_match('/^WAL-[A-Z0-9]{10}$/D',$reference))return false;
+ $topup=one('SELECT * FROM wallet_topups WHERE reference=?',[$reference]);if(!$topup)return false;
+ if($topup['status']==='success'){wallet_topup_receipt($topup);return true;}
+ $stage='provider';
+ try {
+  $data=paystack_request('GET','transaction/verify/'.rawurlencode($reference),reveal_secret($topup['secret_cipher']));
+  if(($data['status']??'')!=='success')return false;
+  if(($data['reference']??'')!==$reference||($data['currency']??'')!=='NGN'||($data['domain']??'')!==$topup['mode']||!isset($data['amount'])||!preg_match('/^[0-9]+$/D',(string)$data['amount'])||(int)$data['amount']!==(int)$topup['amount']){
+   sql("UPDATE wallet_topups SET status='review' WHERE id=? AND status<>'success'",[$topup['id']]);
+   throw new RuntimeException('This top-up needs a payment review. Contact our team with reference '.$reference.'.');
+  }
+  $stage='credit';db()->beginTransaction();
+  $locked=one('SELECT * FROM wallet_topups WHERE id=? FOR UPDATE',[$topup['id']]);
+  if($locked['status']!=='success'){
+   wallet_change((int)$locked['user_id'],$locked['mode'],(int)$locked['amount'],'topup:'.$locked['id'],'topup',$reference);
+   sql("UPDATE wallet_topups SET status='success' WHERE id=?",[$locked['id']]);
+  }
+  db()->commit();
+ }catch(Throwable $error){
+  if(db()->inTransaction())db()->rollBack();wallet_verification_diagnostic($reference,$stage,$error);
+  if($error instanceof RuntimeException && !($error instanceof PDOException))throw $error;
+  throw new RuntimeException('Your top-up could not be credited yet. Do not pay again. Contact our team with reference '.$reference.' (WALLET-CREDIT).',0,$error);
+ }
+ wallet_topup_receipt($topup);return true;
+}
+/** Bounded round-robin recovery; also works when the browser never returns. */
+function wallet_reconcile_batch(int $limit=3):array {
+ $lock='thirtyvi-wallet-worker-'.substr(hash('sha256',(string)cfg()['db_name']),0,20);
+ if((int)(one('SELECT GET_LOCK(?,0) ok',[$lock])['ok']??0)!==1)return ['checked'=>0,'credited'=>0,'busy'=>true];
+ $checked=0;$credited=0;$failed=0;$limit=max(1,min(10,$limit));
+ try {
+  $cursor=(int)mail_setting('wallet_reconcile_cursor','0');
+  $select="SELECT id,reference FROM wallet_topups WHERE attempted=1 AND status='initialized' AND id>? ORDER BY id LIMIT ".$limit;
+  $rows=all($select,[$cursor]);if(!$rows&&$cursor)$rows=all($select,[0]);
+  foreach($rows as $row){$checked++;try{if(wallet_verify_topup($row['reference']))$credited++;}catch(Throwable $error){$failed++;}mail_put('wallet_reconcile_cursor',(string)$row['id']);}
+  // Repair receipts separately, including credits already committed before a queue failure.
+  foreach(all("SELECT t.* FROM wallet_topups t WHERE t.status='success' AND NOT EXISTS(SELECT 1 FROM email_queue q WHERE q.event_key=CONCAT('wallet:topup:',t.id)) ORDER BY t.id LIMIT ".$limit) as $topup)wallet_topup_receipt($topup);
+  $result=['checked'=>$checked,'credited'=>$credited,'failed'=>$failed];mail_put('wallet_worker_last_result',json_encode(['time'=>time(),'result'=>$result]));return $result;
+ }finally{sql('SELECT RELEASE_LOCK(?)',[$lock]);}
 }
 function wallet_pay(int $userId,string $kind,int $id):bool{
  if(!in_array($kind,['order','booking'],true))throw new InvalidArgumentException('Invalid request');$mode=paystack_mode();$lock='thirtyvi:pay:'.$kind.':'.$id;

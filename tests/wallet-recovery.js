@@ -1,0 +1,23 @@
+const {execFileSync}=require('node:child_process'),assert=require('node:assert/strict');
+const legacy=process.argv.includes('--legacy');let checks=0;const check=(v,m)=>{assert(v,m);checks++;console.log('PASS: '+m);};
+const php=(code,disable=false)=>execFileSync('docker',['exec','-e','HTTPS_PROXY=http://127.0.0.1:9080','-e','https_proxy=http://127.0.0.1:9080','thirtyvi-dev','php','-d','curl.cainfo=/tmp/lifecycle-ca.pem',...(disable?['-d','disable_functions=ctype_digit']:[]),'-r',"require '/srv/site/app/core.php';if(cfg()['db_name']!=='thirtyvi_dev')exit(2);"+code],{encoding:'utf8'}).trim();
+const sql=q=>execFileSync('docker',['exec','thirtyvi-dev','mariadb','--batch','--skip-column-names','thirtyvi_dev','-e',q],{encoding:'utf8'}).trim();
+function fixture(){return JSON.parse(php("mail_put('paystack_mode','test');mail_put('paystack_enabled','1');mail_put('paystack_test_secret',seal_secret('sk_test_'.str_repeat('a',24)));sql(\"INSERT INTO users(name,email,password) VALUES('Recovery fixture',?,'disabled')\",['recovery-'.bin2hex(random_bytes(6)).'@example.test']);$uid=(int)db()->lastInsertId();$_SESSION['wallet_topup_nonce']=bin2hex(random_bytes(24));wallet_start_topup($uid,75000,$_SESSION['wallet_topup_nonce'],'test');$t=one('SELECT * FROM wallet_topups WHERE user_id=?',[$uid]);$s=json_decode(file_get_contents('/tmp/paystack-mock-state.json'),true);$s[$t['reference']]['status']='success';file_put_contents('/tmp/paystack-mock-state.json',json_encode($s));echo json_encode(['id'=>$t['id'],'uid'=>$uid,'ref'=>$t['reference']]);"));}
+const verify=(t,disabled=false)=>php(`try{echo wallet_verify_topup('${t.ref}')?'CREDITED':'PENDING';}catch(Throwable $e){echo get_class($e);}`,disabled);
+sql('DROP TRIGGER IF EXISTS fixture_wallet_queue_failure');
+try {
+ const t=fixture();sql("CREATE TRIGGER fixture_wallet_queue_failure BEFORE INSERT ON email_queue FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Synthetic receipt queue rejection'");
+ const result=verify(t);check(result===(legacy?'PDOException':'CREDITED'),legacy?'Reproduced: receipt failure rolls back verified top-up in 6.6.0':'Receipt failure cannot roll back verified funds');
+ check(Number(php(`echo wallet_balance(${t.uid},'test');`))===(legacy?0:75000),legacy?'Reproduced: paid top-up remains uncredited':'Exact verified amount remains credited');
+ sql('DROP TRIGGER fixture_wallet_queue_failure');
+ if(!legacy){check(verify(t)==='CREDITED','Already-paid top-up recovers without a new initialization');check(sql(`SELECT COUNT(*) FROM wallet_ledger WHERE event_key='topup:${t.id}'`)==='1','Recovery cannot credit twice');check(sql(`SELECT COUNT(*) FROM email_queue WHERE event_key='wallet:topup:${t.id}'`)==='1','Receipt retries independently once queue is healthy');}
+ const noCtype=fixture();check(verify(noCtype,true)===(legacy?'Error':'CREDITED'),legacy?'Reproduced: optional ctype extension missing causes hidden Error':'Verification works without optional ctype extension');
+ if(!legacy){const failedCredit=fixture();sql("CREATE TRIGGER fixture_wallet_credit_failure BEFORE INSERT ON wallet_ledger FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Synthetic ledger rejection'");
+ try{check(verify(failedCredit)==='RuntimeException'&&Number(php(`echo wallet_balance(${failedCredit.uid},'test');`))===0,'A credit database failure rolls back balance and exposes a controlled recovery error');}finally{sql('DROP TRIGGER fixture_wallet_credit_failure');}
+ check(verify(failedCredit)==='CREDITED'&&Number(php(`echo wallet_balance(${failedCredit.uid},'test');`))===75000,'The same paid reference credits after the database fault is resolved');
+ const background=fixture();php("mail_put('wallet_reconcile_cursor','"+(background.id-1)+"');");const result=JSON.parse(php('echo json_encode(wallet_reconcile_batch(1));'));check(result.credited===1&&Number(php(`echo wallet_balance(${background.uid},'test');`))===75000,'Background worker recovers a paid top-up with no browser return/webhook');
+ const unknown=fixture();php(`$s=json_decode(file_get_contents('/tmp/paystack-mock-state.json'),true);$s['${unknown.ref}']['amount']=1;file_put_contents('/tmp/paystack-mock-state.json',json_encode($s));`);check(verify(unknown)==='RuntimeException'&&Number(php(`echo wallet_balance(${unknown.uid},'test');`))===0,'Mismatched provider amount still cannot credit');
+ const diagnostic=JSON.parse(php("echo mail_setting('wallet_last_verification_error');"));check(diagnostic.reference===unknown.ref&&!JSON.stringify(diagnostic).includes('sk_test_'),'Safe diagnostics identify failed reference without secrets');
+ }
+ console.log('TOTAL: '+checks+' passed');
+}finally{sql('DROP TRIGGER IF EXISTS fixture_wallet_queue_failure');sql('DROP TRIGGER IF EXISTS fixture_wallet_credit_failure');}
