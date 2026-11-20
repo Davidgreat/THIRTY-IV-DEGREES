@@ -60,6 +60,7 @@ require_once __DIR__.'/integrations.php';
 require_once __DIR__.'/microsoft-mail.php';
 require_once __DIR__.'/mailer.php';
 require_once __DIR__.'/email-automation.php';
+require_once __DIR__.'/cron-health.php';
 require_once __DIR__.'/wallet.php';
 require_once __DIR__.'/customer-actions.php';
 require_once __DIR__.'/chat.php';

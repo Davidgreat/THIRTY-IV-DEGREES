@@ -2,6 +2,8 @@
 require_once ROOT.'/app/admin-workspace.php';
 $section=trim(substr($path,5),'/');
 if(admin()['role']!=='admin' && !in_array($section,['','workspace','orders','bookings','calendar','inventory','customers','whatsapp','chat'],true))abort(403,'Owner access required');
+if($section==='cron/status'){header('Content-Type: application/json');header('Cache-Control: private, no-store');echo json_encode(cron_health_state());exit;}
+if($section==='cron'){cron_health_page();exit;}
 function admin_page(string $title,callable $body):void{
  global $section;
  layout($title,function()use($title,$body,$section){

@@ -34,6 +34,7 @@ function admin_tool_groups():array{return [
  'system'=>['title'=>'Access & system','hint'=>'Team permissions and maintenance','icon'=>'06','tools'=>[
  'security'=>['My account & security','Change your own owner login email and password.'],
  'staff'=>['Staff access','Assign manager roles and restrict operational permissions.'],
+ 'cron'=>['Cron health & test','Confirm real scheduled runs and trace queued wallet receipt delivery.'],
  'integrations'=>['Other connections','Review optional API fields and integration requirements.'],
  'plugins'=>['Plugins','Manage trusted extensions installed on your website.'],
  'updates'=>['Website updates','Install trusted update ZIPs and view available restore points.']]],

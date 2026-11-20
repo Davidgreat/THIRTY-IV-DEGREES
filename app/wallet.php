@@ -66,6 +66,14 @@ function wallet_verify_topup(string $reference):bool {
  }
  wallet_topup_receipt($topup);return true;
 }
+function wallet_repair_receipts(int $limit=20):int {
+ $queued=0;$limit=max(1,min(50,$limit));
+ foreach(all("SELECT t.* FROM wallet_topups t WHERE t.status='success' AND NOT EXISTS(SELECT 1 FROM email_queue q WHERE q.event_key=CONCAT('wallet:topup:',t.id)) ORDER BY t.id LIMIT ".$limit) as $topup){
+  wallet_topup_receipt($topup);
+  if(one('SELECT id FROM email_queue WHERE event_key=?',['wallet:topup:'.$topup['id']]))$queued++;
+ }
+ return $queued;
+}
 /** Bounded round-robin recovery; also works when the browser never returns. */
 function wallet_reconcile_batch(int $limit=3):array {
  $lock='thirtyvi-wallet-worker-'.substr(hash('sha256',(string)cfg()['db_name']),0,20);
@@ -77,7 +85,7 @@ function wallet_reconcile_batch(int $limit=3):array {
   $rows=all($select,[$cursor]);if(!$rows&&$cursor)$rows=all($select,[0]);
   foreach($rows as $row){$checked++;try{if(wallet_verify_topup($row['reference']))$credited++;}catch(Throwable $error){$failed++;}mail_put('wallet_reconcile_cursor',(string)$row['id']);}
   // Repair receipts separately, including credits already committed before a queue failure.
-  foreach(all("SELECT t.* FROM wallet_topups t WHERE t.status='success' AND NOT EXISTS(SELECT 1 FROM email_queue q WHERE q.event_key=CONCAT('wallet:topup:',t.id)) ORDER BY t.id LIMIT ".$limit) as $topup)wallet_topup_receipt($topup);
+  wallet_repair_receipts($limit);
   $result=['checked'=>$checked,'credited'=>$credited,'failed'=>$failed];mail_put('wallet_worker_last_result',json_encode(['time'=>time(),'result'=>$result]));return $result;
  }finally{sql('SELECT RELEASE_LOCK(?)',[$lock]);}
 }
