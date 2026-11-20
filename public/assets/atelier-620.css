@@ -59,3 +59,6 @@ body.vi-compact details.checkout-panel>summary::-webkit-details-marker{display:n
 body.vi-compact details.checkout-panel[open]>summary{margin-bottom:16px!important}
 .checkout-disclosure{margin-left:auto;color:var(--c-gold);font-size:18px}.checkout-panel[open] .checkout-disclosure{rotate:180deg}
 .checkout-details-next{margin-top:14px!important}.checkout-panel{scroll-margin-top:80px}
+.checkout-wallet-choice{border:1px solid var(--c-line);border-radius:12px;padding:15px;margin:16px 0;color:var(--c-text);background:var(--c-panel)}.checkout-wallet-choice legend{font-size:13px;font-weight:600}.checkout-wallet-choice label{display:flex;gap:8px;align-items:center;min-height:42px;font-size:12px}.checkout-wallet-choice input{width:17px!important;min-height:17px!important;height:17px!important}.checkout-wallet-choice>a{font-size:11px;color:var(--c-gold)!important}
+/* Keep the public wallet choice readable while the account app uses its own layout. */
+.checkout-wallet-choice legend{color:var(--c-text)}

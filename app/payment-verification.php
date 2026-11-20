@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 function verify_payment(string $ref):bool {
+ if(str_starts_with($ref,'WAL-'))return wallet_verify_topup($ref);
  if(!preg_match('/^[A-Za-z0-9._=-]{1,80}$/D',$ref))return false;
  $payment=one('SELECT * FROM payments WHERE reference=?',[$ref]);
  if(!$payment)return false;if($payment['status']==='success')return true;
@@ -10,9 +11,9 @@ function verify_payment(string $ref):bool {
  return paystack_record_success($payment,$data);
 }
 /** Called only after validating the gateway response, never from browser input. */
-function paystack_record_success(array $payment,array $data):bool {
- $changed=false;
- db()->beginTransaction();
+function paystack_record_success(array $payment,array $data,bool $withinTransaction=false):bool {
+ $changed=false;if($withinTransaction&&!db()->inTransaction())throw new LogicException('An active transaction is required');
+ if(!$withinTransaction)db()->beginTransaction();
  try{
   // Lock the parent first so two different successful references cannot deduct stock twice.
   $kind=$payment['entity_type'];$table=$kind==='order'?'orders':'bookings';
@@ -50,8 +51,8 @@ function paystack_record_success(array $payment,array $data):bool {
     }
    }
   }
-  db()->commit();
- }catch(Throwable $e){if(db()->inTransaction())db()->rollBack();throw $e;}
- if($changed){$payment['status']='success';run_hook('payment.success',['payment'=>$payment]);}
+  if(!$withinTransaction)db()->commit();
+ }catch(Throwable $e){if(!$withinTransaction&&db()->inTransaction())db()->rollBack();throw $e;}
+ if($changed&&!$withinTransaction){$payment['status']='success';run_hook('payment.success',['payment'=>$payment]);}
  return true;
 }

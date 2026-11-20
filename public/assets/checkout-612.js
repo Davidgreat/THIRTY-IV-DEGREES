@@ -21,7 +21,7 @@
  function safeNext(value){
   try{const u=new URL(value,location.origin);if(u.username||u.password)return false;if(u.origin===location.origin)return /^\/(?:order\/\d+(?:\?new=1)?|booking\/\d+|cart)$/.test(u.pathname+u.search);return u.protocol==='https:'&&u.hostname==='checkout.paystack.com'&&(!u.port||u.port==='443');}catch{return false;}
  }
- function reset(){inFlight=false;buttons.forEach(b=>{b.disabled=false;b.removeAttribute('aria-busy');b.innerHTML=labels.get(b);});}
+ function reset(){inFlight=false;buttons.forEach(b=>{b.disabled=false;b.removeAttribute('aria-busy');b.innerHTML=form.querySelector('[name=payment_method]:checked')?.value==='wallet'?'Pay with wallet →':labels.get(b);});}
  async function request(url,options={}){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
   try{
@@ -58,5 +58,5 @@
   }finally{reset();}
  },true);
  form.addEventListener('input',e=>{if(e.target.willValidate&&e.target.checkValidity())e.target.removeAttribute('aria-invalid');});
- window.addEventListener('pageshow',reset);
+ window.addEventListener('pageshow',reset);form.querySelectorAll('[name=payment_method]').forEach(r=>r.addEventListener('change',()=>{if(!inFlight)reset();}));
 })();

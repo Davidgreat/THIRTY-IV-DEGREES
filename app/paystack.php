@@ -136,6 +136,7 @@ function paystack_checkout(string $kind,int $id):string {
 function paystack_webhook_key(string $raw,string $signature,array $event):string {
  if(!preg_match('/^[a-f0-9]{128}$/iD',$signature))return '';
  $keys=[];$ref=(string)($event['data']['reference']??'');
+ if(str_starts_with($ref,'WAL-')){$topup=one('SELECT secret_cipher FROM wallet_topups WHERE reference=?',[$ref]);if($topup)$keys[]=reveal_secret($topup['secret_cipher']);}
  if($ref!==''){$payment=one('SELECT * FROM payments WHERE reference=?',[$ref]);if($payment)$keys[]=paystack_payment_key($payment);}
  foreach(['test','live'] as $mode)$keys[]=paystack_key($mode);
  $keys[]=integration_secret('paystack_secret');

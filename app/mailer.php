@@ -8,6 +8,7 @@ function email_enqueue(string $eventKey,string $recipient,string $subject,string
     sql('INSERT INTO email_queue(event_key,recipient,subject,body,status,available_at) VALUES(?,?,?,?,\'pending\',NOW()) ON DUPLICATE KEY UPDATE id=id',[$eventKey,$recipient,mb_substr(str_replace(["\r","\n"],' ',$subject),0,190),mb_substr($body,0,10000)]);
 }
 function email_template_defaults():array{return [
+ 'wallet_topup'=>['subject'=>'Wallet top-up verified · {reference}','body'=>"Hello {name},\n\nYour wallet received {amount}. {status}.\n\nReference: {reference}\n\n36°"],
  'account_email_changed'=>['subject'=>'Your 36° login email changed','body'=>"Hello {name},\n\nYour account sign-in email was changed. If this was not you, contact our team immediately.\n\n36°"],
  'refund_completed'=>['subject'=>'Refund processed · {reference}','body'=>"Hello {name},\n\nThe payment provider marked a refund of {amount} for {reference} as processed. The time it takes to appear in your account depends on your bank.\n\n36°"],
  'account_created'=>['subject'=>'Welcome to 36°','body'=>"Hello {name},\n\nYour account is ready. You can now order meals, track your orders and plan private dining with us.\n\n36°"],

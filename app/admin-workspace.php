@@ -11,6 +11,7 @@ function admin_tool_groups():array{return [
  'inventory'=>['Stock control','Track available quantities and low-stock thresholds.']]],
  'payments'=>['title'=>'Payments & reports','hint'=>'Paystack, transactions and refunds','icon'=>'03','tools'=>[
  'payments'=>['Transactions','Review recorded payments and their test/live environment.'],
+ 'wallets'=>['Customer wallets','Review live/test balances, top-ups and their verification status.'],
  'paystack'=>['Paystack setup','Manage payment activation and test/live credentials.'],
  'checkout-health'=>['Checkout diagnostics','Inspect endpoint stages and missing database fields without changing records.'],
  'refunds'=>['Refund reviews','Review eligible payments and submit or reconcile refunds.'],
@@ -22,6 +23,8 @@ function admin_tool_groups():array{return [
  'media'=>['Media library','Upload images and copy their URLs into products and pages.'],
  'pages'=>['Information pages','Maintain your story, policies and other site information.']]],
  'customers'=>['title'=>'Customers & messages','hint'=>'People, communication and reviews','icon'=>'05','tools'=>[
+ 'chat'=>['Customer chat','Live conversations, typing indicators and owner chat controls.'],
+ 'customer-requests'=>['Returns & customer requests','Review order changes, issues and refund requests.'],
  'customers'=>['Customer accounts','Look up registered customers and their contact details.'],
  'whatsapp'=>['WhatsApp messages','Configure the business number and open prepared customer messages.'],
  'email'=>['Email delivery','Configure SMTP or Microsoft OAuth2, send a test and review delivery.'],
@@ -37,7 +40,7 @@ function admin_tool_groups():array{return [
 ];}
 function admin_visible_groups():array{
  $groups=admin_tool_groups();if(admin()['role']==='admin')return $groups;
- $allowed=['orders','bookings','calendar','inventory','customers','whatsapp'];
+ $allowed=['orders','bookings','calendar','inventory','customers','whatsapp'];if(chat_staff(admin()))$allowed[]='chat';
  foreach($groups as $key=>&$group){$group['tools']=array_intersect_key($group['tools'],array_flip($allowed));if(!$group['tools'])unset($groups[$key]);}unset($group);return $groups;
 }
 function admin_tool_info(string $section):array{
