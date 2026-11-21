@@ -17,6 +17,7 @@ function admin_tool_groups():array{return [
  'refunds'=>['Refund reviews','Review eligible payments and submit or reconcile refunds.'],
  'analytics'=>['Sales reports','Understand paid order value, popular meals and booking activity.']]],
  'website'=>['title'=>'Website & content','hint'=>'Appearance, promotions and media','icon'=>'04','tools'=>[
+ 'digital-card'=>['Owner digital card','Edit the chef’s shareable card, contact links, logo and service offers.'],
  'settings'=>['Brand & service settings','Edit business details, colours, delivery fee and chef availability.'],
  'sliders'=>['Homepage slideshow','Choose the images, videos and copy featured on the homepage.'],
  'banners'=>['Promotional banners','Manage compact announcements and calls to action.'],

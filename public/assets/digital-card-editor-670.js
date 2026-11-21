@@ -1,0 +1,6 @@
+(() => {
+ const list=document.querySelector('[data-card-services]'),add=document.querySelector('[data-add-service]'),status=document.querySelector('[data-card-editor-status]'),template=document.getElementById('card-service-template');if(!list)return;
+ const renumber=()=>{[...list.children].forEach((field,index)=>field.querySelectorAll('[name]').forEach(input=>input.name=input.name.replace(/services\[\d+\]/,`services[${index}]`)));add.disabled=list.children.length>=10;};
+ add.addEventListener('click',()=>{if(list.children.length>=10)return;const fragment=template.content.cloneNode(true);list.append(fragment);renumber();list.lastElementChild.querySelector('input').focus();status.textContent='Offer added. Save to publish changes.';});
+ list.addEventListener('click',event=>{const button=event.target.closest('button'),row=button?.closest('[data-card-service]');if(!row)return;if(button.hasAttribute('data-service-remove')){row.remove();status.textContent='Offer removed. Save to publish changes.';}if(button.hasAttribute('data-service-up')&&row.previousElementSibling)list.insertBefore(row,row.previousElementSibling);if(button.hasAttribute('data-service-down')&&row.nextElementSibling)list.insertBefore(row.nextElementSibling,row);renumber();});renumber();
+})();

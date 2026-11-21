@@ -4,8 +4,10 @@ require __DIR__.'/app/core.php';
 require_once ROOT.'/app/checkout.php';
 require_once ROOT.'/app/catalogue.php';
 require_once ROOT.'/app/owner-security.php';
+require_once ROOT.'/app/digital-card.php';
 if(!is_file(ROOT.'/config.php')){header('Location: /install/');exit;}
 $path=trim(parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH),'/');
+if(!post()&&in_array($path,['digital-card','digital-card/contact.vcf'],true))digital_card_public();
 if(defined('THIRTYVI_CHECKOUT_ENDPOINT')){
  if(!post())checkout_endpoint_bootstrap();
  $path='checkout';checkout_trace('received');
@@ -384,6 +386,7 @@ if(post()){
     foreach(['mail_subject_'.$key=>$subject,'mail_body_'.$key=>$body] as $k=>$v)sql('INSERT INTO settings (`key`,value) VALUES (?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)',[$k,$v]);
    }audit('email.templates');flash('Email templates saved.');go('admin/email-templates');
   }
+  if($action==='digital-card/save')digital_card_save();
   if($action==='cron/test')cron_probe_start();
   if($action==='cron/receipts'){
    rate_limit('cron_receipt_repair',4,3600);try{$queued=wallet_repair_receipts(20);flash($queued.' missing wallet receipt(s) queued. The scheduled worker sends them; existing receipts were preserved.');}catch(Throwable $error){flash('Receipt repair could not complete. Check wallet verification diagnostics.','error');}go('admin/cron');
