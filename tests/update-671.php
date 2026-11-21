@@ -1,0 +1,51 @@
+<?php
+/** Upload the new package into a separate 6.7.0 fixture, preserving payment configuration. */
+$base='http://127.0.0.1:8098';$cookie='/tmp/update671.cookies';$n=0;
+function req671(string $path,?array $data=null):array{global $base,$cookie;$c=curl_init($base.$path);$opts=[CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>true,CURLOPT_COOKIEJAR=>$cookie,CURLOPT_COOKIEFILE=>$cookie,CURLOPT_TIMEOUT=>20];if($data!==null){$opts[CURLOPT_POST]=true;$opts[CURLOPT_POSTFIELDS]=$data;}curl_setopt_array($c,$opts);$body=curl_exec($c);$code=curl_getinfo($c,CURLINFO_HTTP_CODE);return [$code,$body];}
+function check671(bool $value,string $label):void{global $n;if(!$value)throw new RuntimeException('FAIL: '.$label);$n++;echo 'PASS: '.$label.PHP_EOL;}
+$db=new PDO('mysql:host=127.0.0.1;dbname=thirtyvi_upgrade671','dev','local-dev-only');
+$db->exec("UPDATE settings SET value='6.7.0' WHERE `key`='app_version'");
+$settings=hash('sha256',json_encode($db->query("SELECT `key`,value FROM settings WHERE `key` LIKE 'paystack%' ORDER BY `key`")->fetchAll(PDO::FETCH_ASSOC)));
+$emailSettings=hash('sha256',json_encode($db->query("SELECT `key`,value FROM settings WHERE `key` LIKE 'smtp%' OR `key` LIKE 'ms_mail_%' ORDER BY `key`")->fetchAll(PDO::FETCH_ASSOC)));
+$before=$db->query('SELECT COUNT(*) FROM orders')->fetchColumn();$beforeB=$db->query('SELECT COUNT(*) FROM bookings')->fetchColumn();
+$config=hash_file('sha256','/srv/upgrade671/config.php');file_put_contents('/srv/upgrade671/public/uploads/preserve.txt','Existing customer media');
+[$code,$body]=req671('/login');preg_match('/name="csrf" value="([a-f0-9]+)"/',$body,$m);
+[$code,$body]=req671('/login',['csrf'=>$m[1],'email'=>'admin@example.test','password'=>'Test-password-600']);check671($code===200&&str_contains($body,'Business overview'),'6.7.0 fixture login');
+[$code,$body]=req671('/admin/updates');preg_match('/name="csrf" value="([a-f0-9]+)"/',$body,$m);$token=$m[1];
+[$code,$body]=req671('/admin/package/install',['csrf'=>$token,'type'=>'update','package'=>new CURLFile('/tmp/update671.zip','application/zip','thirtyvi-degrees-update-6.7.1.zip')]);
+check671($code===200&&str_contains($body,'Update installed.'),'6.7.0 dashboard uploader accepts 6.7.1');
+check671($db->query("SELECT value FROM settings WHERE `key`='app_version'")->fetchColumn()==='6.7.1','Version recorded as 6.7.1');
+check671($settings===hash('sha256',json_encode($db->query("SELECT `key`,value FROM settings WHERE `key` LIKE 'paystack%' ORDER BY `key`")->fetchAll(PDO::FETCH_ASSOC))),'All Paystack credentials, activation and mode preserved');
+check671(hash_file('sha256','/srv/upgrade671/config.php')===$config,'Hosting configuration preserved');
+check671(hash('sha256',json_encode($db->query("SELECT `key`,value FROM settings WHERE `key` LIKE 'smtp%' OR `key` LIKE 'ms_mail_%' ORDER BY `key`")->fetchAll(PDO::FETCH_ASSOC)))===$emailSettings,'Existing email settings preserved');
+check671(file_get_contents('/srv/upgrade671/public/uploads/preserve.txt')==='Existing customer media','Customer uploads preserved');
+check671($db->query('SELECT COUNT(*) FROM orders')->fetchColumn()===$before,'Orders preserved');check671($db->query('SELECT COUNT(*) FROM bookings')->fetchColumn()===$beforeB,'Bookings preserved');
+[$code,$body]=req671('/admin/workspace');check671($code===200&&str_contains($body,'What would you like to do?'),'Grouped workspace available after upload');
+[$code,$body]=req671('/private-chef');check671($code===200&&str_contains($body,'data-booking-wizard'),'New booking experience available after upload');
+foreach(['payment-verification.php','integrations.php'] as $file)check671(hash_file('sha256','/srv/upgrade671/app/'.$file)===hash_file('sha256','/srv/site/app/'.$file),'Existing backend unchanged: '.$file);
+$points=glob('/srv/upgrade671/storage/.backups/*/restore-point.json');$latest=end($points);$manifest=json_decode(file_get_contents($latest),true);check671($manifest['has_migrations']===false&&$manifest['from']==='6.7.0'&&$manifest['to']==='6.7.1','Code-only restore point created');
+[$code,$body]=req671('/admin/package/install',['csrf'=>$token,'type'=>'update','package'=>new CURLFile('/tmp/update671.zip','application/zip','thirtyvi-degrees-update-6.7.1.zip')]);check671(str_contains($body,'Update version must be newer'),'Duplicate version rejected');
+check671(is_file('/srv/upgrade671/app/checkout.php'),'Checkout helper installed');check671(is_file('/srv/upgrade671/public/assets/checkout-612.js'),'Checkout validation script installed');
+[$status,$body]=req671('/public/checkout.php?probe=1');$probe=json_decode($body,true);check671($status===200&&($probe['build']??'')==='6.1.2','Physical endpoint installed and running matching build');check671(!isset($probe['csrf']),'Public probe does not expose CSRF/session details');
+[$status,$body]=req671('/admin/checkout-health');check671($status===200&&str_contains($body,'Required database structure'),'Protected diagnostic page available');
+check671(is_file('/srv/upgrade671/public/assets/email-640.css'),'Email stylesheet installed');
+check671(is_file('/srv/upgrade671/public/assets/email-640.js'),'Email feedback script installed');
+[$code,$body]=req671('/admin/security');check671($code===200&&str_contains($body,'Change login email'),'Owner security page available');
+[$code,$body]=req671('/admin/categories');check671($code===200&&str_contains($body,'Create category'),'Category editor available');
+[$code,$body]=req671('/admin/email');check671($code===200&&str_contains($body,'Send test email')&&str_contains($body,'Microsoft modern authentication'),'Microsoft setup and test-mail UI available');
+check671(is_file('/srv/upgrade671/app/microsoft-mail.php'),'OAuth module installed');
+[$code,$body]=req671('/admin/email');check671(str_contains($body,'Send up to 5 pending emails now')&&str_contains($body,'email-cron-command'),'Cron health and manual queue controls installed');
+check671(is_file('/srv/upgrade671/app/email-automation.php'),'Automation health module installed');
+foreach(['customer_profiles','wallet_accounts','wallet_topups','wallet_ledger','wallet_spends','chat_conversations','chat_messages','chat_reactions'] as $table)check671((bool)$db->query("SHOW TABLES LIKE '$table'")->fetchColumn(),'Existing customer/wallet/chat table preserved: '.$table);
+[$code,$body]=req671('/admin/chat');check671($code===200&&str_contains($body,'Chat availability'),'Owner chat pause controls installed');
+[$code,$body]=req671('/admin/wallets');check671($code===200&&str_contains($body,'Customer wallets'),'Owner wallet records installed');
+[$code,$body]=req671('/admin/cron');check671($code===200&&str_contains($body,'Start scheduled cron & email test'),'Cron test page installed');
+[$code,$body]=req671('/admin/cron/status');check671($code===200&&is_array(json_decode($body,true)),'Owner cron status API installed');
+check671($db->query("SELECT TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='email_queue'")->fetchColumn()==='utf8mb4_unicode_ci','Email queue migrated to Unicode');
+[$code,$body]=req671('/digital-card');check671($code===200&&str_contains($body,'Tosin Olateru'),'Public digital card installed');
+[$code,$body]=req671('/admin/digital-card');check671($code===200&&str_contains($body,'Save digital card'),'Owner digital card editor installed');
+[$code,$body]=req671('/digital-card/contact.vcf');check671($code===200&&str_contains($body,'BEGIN:VCARD'),'Downloadable contact installed');
+[$code,$body]=req671('/admin/construction');check671($code===200&&str_contains($body,'Save website access settings'),'Owner construction controls installed');
+$c=curl_init($base.'/menu');curl_setopt($c,CURLOPT_RETURNTRANSFER,true);$holding=curl_exec($c);check671(curl_getinfo($c,CURLINFO_HTTP_CODE)===503&&str_contains($holding,'Website under construction'),'Fresh visitor receives construction page after upload');curl_close($c);
+$c=curl_init($base.'/digital-card');curl_setopt($c,CURLOPT_RETURNTRANSFER,true);$card=curl_exec($c);check671(curl_getinfo($c,CURLINFO_HTTP_CODE)===200&&str_contains($card,'Tosin Olateru'),'Digital card remains public without a preview code');curl_close($c);
+echo "TOTAL: $n passed\n";
